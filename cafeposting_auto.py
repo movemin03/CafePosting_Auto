@@ -103,7 +103,7 @@ def posting():
 
 
 # 실행되는 라인
-subprocess.Popen(r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\chrometemp"')
+subprocess.Popen(r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\movem\\AppData\\Local\\Google\\Chrome\\User Data"')
 option = Options()
 option.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 chrome_ver = 114
