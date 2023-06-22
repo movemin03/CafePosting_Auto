@@ -8,32 +8,48 @@ import pyperclip
 import pandas as pd
 import subprocess
 
-ver = str("2023-06-20")
+subprocess.Popen(r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\movem\\AppData\\Local\\Google\\Chrome\\User Data"')
+option = Options()
+option.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+chrome_ver = 114
+driver = webdriver.Chrome(options=option)
+driver.execute_script('window.open("about:blank", "_blank");')
+tabs = driver.window_handles
+
+ver = str("2023-06-22")
 
 # 안내
 print("\n")
 print("씽굿 프로그램입니다.")
-print("https://github.com/movemin03/BlogPostingAuto")
+print("https://github.com/movemin03/CafePosting_Auto")
 print("ver:" + ver)
 
 # 정보 입력
 print('필요한 정보를 기입해야합니다\n')
 print("게시물의 제목을 적어주십시오:")
-title = "[추천공모전]예시"
-print("복사할 html 코드입력해주세요:")
-cnt = "html예시"
+title = input()
+print("복사할 html 코드 위치를 입력해주세요:")
+content_path = input()
+try:
+    content_path = content_path.replace('"', '')
+except:
+    pass
 
 # 사용할 아이디/패스워드
 auth_dic = {'id': 'pw'}
 print("사용할 아이디: ")
-auth = str('id')
+auth = input()
 print("아이디: " + auth)
 print("사용될 패스워드: " + auth_dic[auth])
 
 # 데이터 전처리0
 print('참고할 엑셀 파일 위치를 알려주세요:')
-upload_path = ("C:\\Users\\movem\\Desktop\\워크시트.xlsx")
-excel = pd.read_excel(upload_path, names = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
+upload_path = input()
+try:
+    upload_path = upload_path.replace('"', '')
+except:
+    pass
+excel = pd.read_excel(upload_path, names=['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
 excel_1 = excel[excel['사용아이디'] == auth]
 url_list = list(excel_1['사이트주소'])
 
@@ -46,7 +62,13 @@ len_daum = len(daum_list)
 n_error_list = []
 d_error_list = []
 
+def content_html():
+    driver.switch_to.window(tabs[0])
+    driver.get(content_path)
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys('c').key_up(Keys.CONTROL).perform()
 def login():
+    driver.switch_to.window(tabs[1])
     login_url = "https://nid.naver.com/nidlogin.login"
     driver.get(login_url)
 
@@ -62,6 +84,8 @@ def login():
 
 
 def posting():
+    print("\n네이버 카페 " + str(len_naver) + "개, 다음 카페 " + str(len_daum) + "개를 시도하셨습니다.")
+    driver.switch_to.window(tabs[1])
     driver.get(naver_url)
     print("링크 접속 완료")
     time.sleep(1)
@@ -91,9 +115,12 @@ def posting():
     print("글쓰기 1/3: 제목 입력 완료")
 
     time.sleep(1)
+    content_html()
+    driver.switch_to.window(tabs[1])
+    time.sleep(1)
     driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[0].click()
-    action = ActionChains(driver)
-    action.send_keys(cnt).perform()
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+
     print("글쓰기 2/3: html 코드 입력 완료")
 
     time.sleep(1)
@@ -103,19 +130,13 @@ def posting():
 
 
 # 실행되는 라인
-subprocess.Popen(r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\movem\\AppData\\Local\\Google\\Chrome\\User Data"')
-option = Options()
-option.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
-chrome_ver = 114
-driver = webdriver.Chrome(options=option)
-
 login()
 i = 0
 while i <= len_naver:
     try:
         naver_url = naver_list[i]
         posting()
-        excel_1.iloc[i,3] = "O"
+        excel_1.iloc[i, 3] = "O"
     except:
         if i >= len_naver:
             pass
@@ -123,18 +144,17 @@ while i <= len_naver:
             n_error_list.append(naver_list[i])
             excel_1.iloc[i, 3] = "X"
     i = i + 1
-print("\n네이버 카페 " + str(len_naver) + "개, 다음 카페 " + str(len_daum) + "개를 시도하셨습니다.")
 
-if len(n_error_list)>0:
+if len(n_error_list) > 0:
     print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 네이버 카페:")
     print(n_error_list)
 else:
     pass
-if len(d_error_list)>0:
+if len(d_error_list) > 0:
     print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 다음 카페:")
     print(d_error_list)
 else:
     pass
-excel_1.to_excel('C:\\Users\\movem\\Desktop\\'+ auth + '_작업완료.xlsx')
-print('작업완료 된 내역을 엑셀파일로 저장하였습니다.')
+excel_1.to_excel('C:\\Users\\movem\\Desktop\\' + auth + '_작업완료.xlsx')
+print('작업완료된 내역을 엑셀 파일로 저장하였습니다.')
 a = input()
