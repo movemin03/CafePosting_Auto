@@ -26,6 +26,7 @@ print("ver:" + ver)
 
 # 정보 입력
 print('필요한 정보를 기입해야합니다\n')
+auth_dic = {'id': 'pw'}
 print("게시물의 제목을 적어주십시오:")
 title = input()
 print("복사할 html 코드 위치를 입력해주세요:")
@@ -35,13 +36,6 @@ try:
 except:
     pass
 
-# 사용할 아이디/패스워드
-auth_dic = {'id': 'pw'}
-print("사용할 아이디: ")
-auth = input()
-print("아이디: " + auth)
-print("사용될 패스워드: " + auth_dic[auth])
-
 # 데이터 전처리0
 print('참고할 엑셀 파일 위치를 알려주세요:')
 upload_path = input()
@@ -49,16 +43,9 @@ try:
     upload_path = upload_path.replace('"', '')
 except:
     pass
+print('\n 입력하신 엑셀파일을 읽어오고 있습니다')
 excel = pd.read_excel(upload_path, names=['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
-excel_1 = excel[excel['사용아이디'] == auth]
-url_list = list(excel_1['사이트주소'])
 
-# 데이터 전처리1
-print("\n 데이터 전처리 중... 네이버 카페와 다음 카페 분류 중 입니다\n")
-naver_list = [x for x in url_list if "cafe.naver.com" in x]
-len_naver = len(naver_list)
-daum_list = [y for y in url_list if "cafe.daum.net" in y]
-len_daum = len(daum_list)
 n_error_list = []
 d_error_list = []
 
@@ -84,7 +71,6 @@ def login():
 
 
 def posting():
-    print("\n네이버 카페 " + str(len_naver) + "개, 다음 카페 " + str(len_daum) + "개를 시도하셨습니다.")
     driver.switch_to.window(tabs[1])
     driver.get(naver_url)
     print("링크 접속 완료")
@@ -130,20 +116,45 @@ def posting():
 
 
 # 실행되는 라인
-login()
-i = 0
-while i <= len_naver:
-    try:
-        naver_url = naver_list[i]
-        posting()
-        excel_1.iloc[i, 3] = "O"
-    except:
-        if i >= len_naver:
-            pass
-        else:
-            n_error_list.append(naver_list[i])
-            excel_1.iloc[i, 3] = "X"
-    i = i + 1
+
+print('사용할 수 있는 아이디는 다음과 같습니다:' + str(auth_dic))
+global m
+m = 0
+
+List = [x for x in input('\n사용할 아이디를 알려주세요.(띄어쓰기로 구분합니다)\n').split()]
+for x in List:
+    auth = x
+    print("사용할 아이디: " + auth)
+    print("사용될 패스워드: " + auth_dic[auth])
+
+    # 데이터 전처리
+    excel_1 = excel[excel['사용아이디'] == list(auth_dic.keys())[m]]
+    print(excel_1)
+    url_list = list(excel_1['사이트주소'])
+    naver_list = [x for x in url_list if "cafe.naver.com" in x]
+    len_naver = len(naver_list)
+    daum_list = [y for y in url_list if "cafe.daum.net" in y]
+    len_daum = len(daum_list)
+    m = +1
+
+    login()
+    print("\n" + auth + " 아이디로 네이버 카페 " + str(len_naver) + "개, 다음 카페 " + str(len_daum) + "개를 진행하겠습니다")
+
+    i = 0
+    while i <= len_naver:
+        try:
+            naver_url = naver_list[i]
+            posting()
+            excel_1.iloc[i, 3] = "O"
+        except:
+            if i >= len_naver:
+                pass
+            else:
+                n_error_list.append(naver_list[i])
+                excel_1.iloc[i, 3] = "X"
+        i = i + 1
+    naver_list = []
+    daum_list = []
 
 if len(n_error_list) > 0:
     print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 네이버 카페:")
