@@ -1,17 +1,19 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 import time
 import pyperclip
 import pandas as pd
+import subprocess
 
-ver = str("2023-06-21")
+ver = str("2023-06-20")
 
 # 안내
 print("\n")
 print("씽굿 프로그램입니다.")
-print("https://github.com/movemin03/CafePosting_Auto")
+print("https://github.com/movemin03/BlogPostingAuto")
 print("ver:" + ver)
 
 # 정보 입력
@@ -22,16 +24,16 @@ print("복사할 html 코드입력해주세요:")
 cnt = "html예시"
 
 # 사용할 아이디/패스워드
-auth_dic = {'example_id': 'example_pw'}
+auth_dic = {'id': 'pw'}
 print("사용할 아이디: ")
-auth = str('movemin03')
+auth = str('id')
 print("아이디: " + auth)
 print("사용될 패스워드: " + auth_dic[auth])
 
 # 데이터 전처리0
 print('참고할 엑셀 파일 위치를 알려주세요:')
-upload_path = "C:\\Users\\movem\\Desktop\\워크시트.xlsx"
-excel = pd.read_excel(upload_path, names = ['사이트명', '사이트주소', '사용아이디', '업로드여부'])
+upload_path = ("C:\\Users\\movem\\Desktop\\워크시트.xlsx")
+excel = pd.read_excel(upload_path, names = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
 excel_1 = excel[excel['사용아이디'] == auth]
 url_list = list(excel_1['사이트주소'])
 
@@ -101,7 +103,12 @@ def posting():
 
 
 # 실행되는 라인
-driver = webdriver.Chrome()
+subprocess.Popen(r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\chrometemp"')
+option = Options()
+option.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+chrome_ver = 114
+driver = webdriver.Chrome(options=option)
+
 login()
 i = 0
 while i <= len_naver:
@@ -128,6 +135,6 @@ if len(d_error_list)>0:
     print(d_error_list)
 else:
     pass
-excel_1.to_excel('C:\\Users\\movem\\Desktop\\작업완료.xlsx')
+excel_1.to_excel('C:\\Users\\movem\\Desktop\\'+ auth + '_작업완료.xlsx')
 print('작업완료 된 내역을 엑셀파일로 저장하였습니다.')
 a = input()
