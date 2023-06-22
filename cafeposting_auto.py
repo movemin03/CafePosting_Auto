@@ -45,6 +45,7 @@ except:
     pass
 print('\n 입력하신 엑셀파일을 읽어오고 있습니다')
 excel = pd.read_excel(upload_path, names=['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
+input_id_list = list(excel['사용아이디'].drop_duplicates())
 
 n_error_list = []
 d_error_list = []
@@ -116,11 +117,10 @@ def posting():
 
 
 # 실행되는 라인
-
-print('사용할 수 있는 아이디는 다음과 같습니다:' + str(auth_dic))
+print('사용할 수 있는 아이디는 다음과 같습니다:' + str(auth_dic.keys()))
+print('제공된 엑셀 참조 파일에 의하면 다음과 같은 id 가 제공되었습니다: ' + str(input_id_list))
 global m
 m = 0
-
 List = [x for x in input('\n사용할 아이디를 알려주세요.(띄어쓰기로 구분합니다)\n').split()]
 for x in List:
     auth = x
