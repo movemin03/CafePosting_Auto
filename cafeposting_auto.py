@@ -31,25 +31,16 @@ auth_dic = {'id': 'pw'}
 print("게시물의 제목을 적어주십시오:")
 title = input()
 print("복사할 html 코드 위치를 입력해주세요:")
-content_path = input()
-try:
-    content_path = content_path.replace('"', '')
-except:
-    pass
+content_path = input().replace('"', '')
 
 # 데이터 전처리0
 print('참고할 엑셀 파일 위치를 알려주세요:')
-upload_path = input()
-try:
-    upload_path = upload_path.replace('"', '')
-except:
-    pass
+upload_path = input().replace('"', '')
 print('\n 입력하신 엑셀파일을 읽어오고 있습니다')
 excel = pd.read_excel(upload_path, names=['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
 input_id_list = list(excel['사용아이디'].drop_duplicates())
 
-n_error_list = []
-d_error_list = []
+n_error_list, d_error_list = [], []
 
 def content_html():
     driver.switch_to.window(tabs[0])
@@ -135,10 +126,8 @@ else:
     print('auth_dic 에 다음 값을 추가해야 합니다 : ' + str(set(input_id_list) - set(list(auth_dic.keys()))))
     print('추가 없이 진행 시, 추가하지 않은 id 는 업로드하지 않습니다\n')
     a = input
-pre_list = pre_list.replace("{", "")
-pre_list = pre_list.replace("}", "")
-pre_list = pre_list.replace("'", "")
-pre_list = pre_list.replace(",", "")
+#불필요한 기호 생략
+pre_list = pre_list.translate(str.maketrans("", "", "{}',"))
 
 List = [x for x in pre_list.split()]
 for x in List:
@@ -178,13 +167,11 @@ for x in List:
     excel_1.to_excel('C:\\Users\\movem\\Desktop\\' + auth + execute_time +'_작업완료.xlsx')
 
 if len(n_error_list) > 0:
-    print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 네이버 카페:")
-    print(n_error_list)
+    print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 네이버 카페:" + n_error_list)
 else:
     pass
 if len(d_error_list) > 0:
-    print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 다음 카페:")
-    print(d_error_list)
+    print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 다음 카페:" + d_error_list)
 else:
     pass
 print('작업완료된 내역을 엑셀 파일로 저장하였습니다.')
