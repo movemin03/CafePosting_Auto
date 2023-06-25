@@ -167,11 +167,11 @@ for x in List:
     excel_1.to_excel('C:\\Users\\movem\\Desktop\\' + auth + execute_time +'_작업완료.xlsx')
 
 if len(n_error_list) > 0:
-    print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 네이버 카페:" + n_error_list)
+    print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 네이버 카페:" + str(n_error_list))
 else:
     pass
 if len(d_error_list) > 0:
-    print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 다음 카페:" + d_error_list)
+    print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 다음 카페:" + str(d_error_list))
 else:
     pass
 print('작업완료된 내역을 엑셀 파일로 저장하였습니다.')
