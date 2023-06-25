@@ -122,7 +122,10 @@ def posting():
     time.sleep(1)
     driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
     print("글쓰기 3/3: 업로드 완료")
-    time.sleep(3)
+    time.sleep(2)
+
+    global posting_url_n
+    posting_url_n = str(driver.current_url)
 
 def posting_daum():
     driver.switch_to.window(tabs[1])
@@ -163,7 +166,12 @@ def posting_daum():
     content_html()
     driver.switch_to.window(tabs[1])
     time.sleep(1)
-    driver.switch_to.frame("keditorContainer_ifr")
+    try:
+        driver.switch_to.default_content()
+        driver.switch_to.frame("down")
+        driver.switch_to.frame(driver.find_element(By.ID, 'keditorContainer_ifr'))
+    except:
+        print("iframe 바꾸기 실패")
     driver.find_element(By.XPATH, '//*[@id="tinymce"]/p').click()
     ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
     print("글쓰기 2/3: html 코드 입력 완료")
@@ -181,7 +189,7 @@ def posting_daum():
     driver.switch_to.default_content()
     driver.switch_to.frame("down")
     global posting_url_d
-    posting_url_d = driver.current_url
+    posting_url_d = str(driver.current_url)
 
 
 # 실행되는 라인
@@ -207,8 +215,10 @@ pre_list = pre_list.translate(str.maketrans("", "", "{}',"))
 List = [x for x in pre_list.split()]
 for x in List:
     auth = x
+    auth = auth.replace("[", "")
+    auth = auth.replace("]", "")
+    auth = auth.replace("[", "")
     print("사용할 아이디: " + auth)
-    print("사용될 패스워드: " + auth_dic[auth])
     execute_time = datetime.today().strftime("%Y%m%d_%H%M")
 
     # 데이터 전처리
@@ -221,15 +231,18 @@ for x in List:
     daum_list = [y for y in url_list if "cafe.daum.net" in y]
     len_daum = len(daum_list)
 
-    login()
+    if len_naver > 0:
+        login()
+    else:
+        print('...')
     print("\n" + auth + " 아이디로 네이버 카페 " + str(len_naver) + "개, 다음 카페 " + str(len_daum) + "개를 진행하겠습니다")
-
     i = 0
-    while i <= len_naver:
+    while i < len_naver:
         try:
             naver_url = naver_list[i]
             posting()
             excel_1.iloc[i, 3] = "O"
+            excel_1.iloc[i, 1] = posting_url_n
         except:
             if i >= len_naver:
                 pass
@@ -238,7 +251,34 @@ for x in List:
                 excel_1.iloc[i, 3] = "X"
         i = i + 1
     naver_list = []
+    len_naver = 0
+
+    if len_daum > 0:
+        try:
+            login_daum()
+        except:
+            print("로그인이 이미 되어 있을 가능성이 있습니다.")
+            a = input()
+    else:
+        print('...')
+    i = 0
+    while i < len_daum:
+        try:
+            daum_url = daum_list[i]
+            posting_daum()
+            excel_1.iloc[i, 3] = "O"
+            excel_1.iloc[i, 1] = posting_url_d
+        except:
+            if i >= len_daum:
+                pass
+            else:
+                d_error_list.append(daum_list[i])
+                excel_1.iloc[i, 3] = "X"
+        i = i + 1
+
     daum_list = []
+    len_daum = 0
+
     excel_1.to_excel('C:\\Users\\movem\\Desktop\\' + auth + execute_time +'_작업완료.xlsx')
 
 if len(n_error_list) > 0:
