@@ -63,6 +63,22 @@ def login():
     time.sleep(2)
     a = input("2차 인증 여부 확인해주시고 아무거나 입력 후 엔터")
 
+def login_daum():
+    driver.switch_to.window(tabs[1])
+    login_url = "https://logins.daum.net/accounts/ksso.do?url=https%3A%2F%2Fwww.daum.net"
+    driver.get(login_url)
+
+    pyperclip.copy(auth)
+    driver.find_element(By.ID, 'loginKey--1').send_keys(Keys.CONTROL + 'v')
+    pyperclip.copy(auth_dic[auth])
+    driver.find_element(By.ID, 'password--2').send_keys(Keys.CONTROL + 'v')
+    time.sleep(1)
+    login_btn = driver.find_element(By.CLASS_NAME, 'confirm_btn').find_element(By.CLASS_NAME, 'submit')
+    login_btn.click()
+    print("로그인: 로그인 작업 진행 완료\n")
+    time.sleep(2)
+    a = input("캡챠 및 2차 인증 여부 확인해주시고 아무거나 입력 후 엔터")
+
 
 def posting():
     driver.switch_to.window(tabs[1])
@@ -107,6 +123,65 @@ def posting():
     driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
     print("글쓰기 3/3: 업로드 완료")
     time.sleep(3)
+
+def posting_daum():
+    driver.switch_to.window(tabs[1])
+    driver.get(daum_url)
+    print("링크 접속 완료")
+    time.sleep(1)
+
+    # 포스팅
+    driver.switch_to.frame("down")
+    driver.find_element(By.CLASS_NAME, 'myList').find_element(By.CLASS_NAME, 'myFolder').click()
+    time.sleep(1)
+    driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
+    time.sleep(2)
+
+    # 게시글 입력창 접근
+    mcn = driver.find_element(By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')
+    mcn_lnk = mcn.get_attribute('href')
+    driver.get(mcn_lnk)
+    time.sleep(1)
+
+    # 게시글 입력창 접근
+    driver.switch_to.frame("down")
+    driver.find_element(By.ID, 'article-write-btn-bottom').click()
+
+    # 게시글 입력창
+    time.sleep(1)
+    try:
+        driver.find_element(By.CLASS_NAME, 'title__input').click()
+    except:
+        print('임시저장 글 원인으로 오류가 났습니다. 해결 후 엔터')
+        a = input()
+        driver.find_element(By.CLASS_NAME, 'title__input').click()
+    action = ActionChains(driver)
+    action.send_keys(title).perform()
+    print("글쓰기 1/3: 제목 입력 완료")
+
+    time.sleep(1)
+    content_html()
+    driver.switch_to.window(tabs[1])
+    time.sleep(1)
+    driver.switch_to.frame("keditorContainer_ifr")
+    driver.find_element(By.XPATH, '//*[@id="tinymce"]/p').click()
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+    print("글쓰기 2/3: html 코드 입력 완료")
+
+    time.sleep(1)
+    driver.switch_to.default_content()
+    driver.switch_to.frame("down")
+    driver.find_element(By.XPATH, '//*[@id="primaryContent"]/div/div[5]/div[2]/button').click()
+    print("글쓰기 3/3: 업로드 완료")
+    time.sleep(3)
+
+    time.sleep(1)
+    driver.find_element(By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]').click()
+    time.sleep(1)
+    driver.switch_to.default_content()
+    driver.switch_to.frame("down")
+    global posting_url_d
+    posting_url_d = driver.current_url
 
 
 # 실행되는 라인
