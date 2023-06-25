@@ -67,7 +67,7 @@ def login():
     driver.find_element(By.ID, 'pw').send_keys(Keys.CONTROL + 'v')
     login_btn = driver.find_element(By.ID, 'log.login')
     login_btn.click()
-    print("로그인: 로그인 완료\n")
+    print("로그인: 로그인 작업 진행 완료\n")
     time.sleep(2)
     a = input("2차 인증 여부 확인해주시고 아무거나 입력 후 엔터")
 
@@ -118,9 +118,18 @@ def posting():
 
 
 # 실행되는 라인
-print('사용할 수 있는 아이디는 다음과 같습니다:' + str(auth_dic.keys()))
-print('제공된 엑셀 참조 파일에 의하면 다음과 같은 id 가 제공되었습니다: ' + str(input_id_list))
-global m
+print('본 프로그램에 등록되어 있는 아이디는 다음과 같습니다:' + str(list(auth_dic.keys())))
+if set(list(auth_dic.keys())) - set(input_id_list) == set(input_id_list) - set(list(auth_dic.keys())):
+    print('프로그램 등록 아이디 리스트와 제공하신 엑셀 파일에 포함된 id 리스트가 동일합니다')
+else:
+    print('필요한 id 리스트는 다음과 같습니다(제공된 엑셀 참조함): ' + str(input_id_list))
+    same = set(list(auth_dic.keys())) & set(input_id_list)
+    if len(same) == 0:
+        print('현재 자동 업로드를 진행할 수 있는 아이디가 없습니다')
+    else:
+        print('현재 ' + str(same) + '를 자동 업로드할 수 있습니다')
+    print('auth_dic 에 다음 값을 추가해야 합니다 : ' + str(set(input_id_list) - set(list(auth_dic.keys()))))
+
 
 List = [x for x in input('\n사용할 아이디를 알려주세요.(띄어쓰기로 구분합니다)\n').split()]
 for x in List:
