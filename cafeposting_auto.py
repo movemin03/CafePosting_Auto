@@ -7,6 +7,7 @@ import time
 import pyperclip
 import pandas as pd
 import subprocess
+from datetime import datetime
 
 subprocess.Popen(r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\movem\\AppData\\Local\\Google\\Chrome\\User Data"')
 option = Options()
@@ -16,7 +17,7 @@ driver = webdriver.Chrome(options=option)
 driver.execute_script('window.open("about:blank", "_blank");')
 tabs = driver.window_handles
 
-ver = str("2023-06-22")
+ver = str("2023-06-25")
 
 # 안내
 print("\n")
@@ -120,22 +121,23 @@ def posting():
 print('사용할 수 있는 아이디는 다음과 같습니다:' + str(auth_dic.keys()))
 print('제공된 엑셀 참조 파일에 의하면 다음과 같은 id 가 제공되었습니다: ' + str(input_id_list))
 global m
-m = 0
+
 List = [x for x in input('\n사용할 아이디를 알려주세요.(띄어쓰기로 구분합니다)\n').split()]
 for x in List:
     auth = x
     print("사용할 아이디: " + auth)
     print("사용될 패스워드: " + auth_dic[auth])
+    execute_time = datetime.today().strftime("%Y%m%d_%H%M")
 
     # 데이터 전처리
-    excel_1 = excel[excel['사용아이디'] == list(auth_dic.keys())[m]]
+    excel_1 = excel[excel['사용아이디'] == auth]
     print(excel_1)
+
     url_list = list(excel_1['사이트주소'])
     naver_list = [x for x in url_list if "cafe.naver.com" in x]
     len_naver = len(naver_list)
     daum_list = [y for y in url_list if "cafe.daum.net" in y]
     len_daum = len(daum_list)
-    m = +1
 
     login()
     print("\n" + auth + " 아이디로 네이버 카페 " + str(len_naver) + "개, 다음 카페 " + str(len_daum) + "개를 진행하겠습니다")
@@ -155,6 +157,7 @@ for x in List:
         i = i + 1
     naver_list = []
     daum_list = []
+    excel_1.to_excel('C:\\Users\\movem\\Desktop\\' + auth + execute_time +'_작업완료.xlsx')
 
 if len(n_error_list) > 0:
     print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 네이버 카페:")
@@ -166,6 +169,5 @@ if len(d_error_list) > 0:
     print(d_error_list)
 else:
     pass
-excel_1.to_excel('C:\\Users\\movem\\Desktop\\' + auth + '_작업완료.xlsx')
 print('작업완료된 내역을 엑셀 파일로 저장하였습니다.')
 a = input()
