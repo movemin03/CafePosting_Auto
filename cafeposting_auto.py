@@ -137,7 +137,6 @@ else:
 pre_list = pre_list.replace("{", "")
 pre_list = pre_list.replace("}", "")
 pre_list = pre_list.replace("'", "")
-print(pre_list)
 
 List = [x for x in pre_list.split()]
 for x in List:
