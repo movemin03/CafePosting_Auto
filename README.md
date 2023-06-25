@@ -1,9 +1,10 @@
 # CafePosting_Auto
 
 카페 반자동 포스팅 프로그램입니다.
+pip install -r requirements.txt
 
 requirements:
-openxl
+openpyxl
 pyperclip
 pandas
 selenium
