@@ -65,6 +65,7 @@ def login():
     driver.find_element(By.ID, 'id').send_keys(Keys.CONTROL + 'v')
     pyperclip.copy(auth_dic[auth])
     driver.find_element(By.ID, 'pw').send_keys(Keys.CONTROL + 'v')
+    time.sleep(1)
     login_btn = driver.find_element(By.ID, 'log.login')
     login_btn.click()
     print("로그인: 로그인 작업 진행 완료\n")
@@ -132,11 +133,12 @@ else:
         print('요청하신 내용의 일부인 ' + str(same) + '를 자동 업로드할 수 있습니다')
         pre_list = str(same)
     print('auth_dic 에 다음 값을 추가해야 합니다 : ' + str(set(input_id_list) - set(list(auth_dic.keys()))))
-    print('추가 없이 진행 시, 추가하지 않은 id 는 업로드하지 않습니다')
+    print('추가 없이 진행 시, 추가하지 않은 id 는 업로드하지 않습니다\n')
     a = input
 pre_list = pre_list.replace("{", "")
 pre_list = pre_list.replace("}", "")
 pre_list = pre_list.replace("'", "")
+pre_list = pre_list.replace(",", "")
 
 List = [x for x in pre_list.split()]
 for x in List:
