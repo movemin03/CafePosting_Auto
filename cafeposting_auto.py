@@ -118,20 +118,28 @@ def posting():
 
 
 # 실행되는 라인
-print('본 프로그램에 등록되어 있는 아이디는 다음과 같습니다:' + str(list(auth_dic.keys())))
-if set(list(auth_dic.keys())) - set(input_id_list) == set(input_id_list) - set(list(auth_dic.keys())):
-    print('프로그램 등록 아이디 리스트와 제공하신 엑셀 파일에 포함된 id 리스트가 동일합니다')
+print('본 프로그램에 등록되어 있는 id 는 다음과 같습니다:' + str(list(auth_dic.keys())))
+if set(input_id_list) - set(list(auth_dic.keys())) == set():
+    print('모두 자동 업로드 가능합니다')
+    pre_list = str(input_id_list)
 else:
-    print('필요한 id 리스트는 다음과 같습니다(제공된 엑셀 참조함): ' + str(input_id_list))
+    print('요청하신 id는 다음과 같습니다: ' + str(input_id_list))
     same = set(list(auth_dic.keys())) & set(input_id_list)
-    if len(same) == 0:
+    if same == set():
         print('현재 자동 업로드를 진행할 수 있는 아이디가 없습니다')
+        exit()
     else:
-        print('현재 ' + str(same) + '를 자동 업로드할 수 있습니다')
+        print('요청하신 내용의 일부인 ' + str(same) + '를 자동 업로드할 수 있습니다')
+        pre_list = str(same)
     print('auth_dic 에 다음 값을 추가해야 합니다 : ' + str(set(input_id_list) - set(list(auth_dic.keys()))))
+    print('추가 없이 진행 시, 추가하지 않은 id 는 업로드하지 않습니다')
+    a = input
+pre_list = pre_list.replace("{", "")
+pre_list = pre_list.replace("}", "")
+pre_list = pre_list.replace("'", "")
+print(pre_list)
 
-
-List = [x for x in input('\n사용할 아이디를 알려주세요.(띄어쓰기로 구분합니다)\n').split()]
+List = [x for x in pre_list.split()]
 for x in List:
     auth = x
     print("사용할 아이디: " + auth)
