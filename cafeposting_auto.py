@@ -8,6 +8,8 @@ import pyperclip
 import pandas as pd
 import subprocess
 from datetime import datetime
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 subprocess.Popen(r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\movem\\AppData\\Local\\Google\\Chrome\\User Data"')
 option = Options()
@@ -27,7 +29,7 @@ print("ver:" + ver)
 
 # 정보 입력
 print('필요한 정보를 기입해야합니다\n')
-auth_dic = {'id': 'pw'}
+auth_dic = {'ID': 'PW'}
 print("게시물의 제목을 적어주십시오:")
 title = input()
 print("복사할 html 코드 위치를 입력해주세요:")
@@ -41,6 +43,7 @@ excel = pd.read_excel(upload_path, names=['사이트명', '사이트주소', '�
 input_id_list = list(excel['사용아이디'].drop_duplicates())
 
 n_error_list, d_error_list = [], []
+
 
 def content_html():
     driver.switch_to.window(tabs[0])
@@ -56,11 +59,14 @@ def login():
     driver.find_element(By.ID, 'id').send_keys(Keys.CONTROL + 'v')
     pyperclip.copy(auth_dic[auth])
     driver.find_element(By.ID, 'pw').send_keys(Keys.CONTROL + 'v')
-    time.sleep(1)
+
+      # 최대 10초간 대기
+    global wait
+    wait = WebDriverWait(driver, 10)
+    wait.until(EC.presence_of_element_located((By.ID, "log.login")))
     login_btn = driver.find_element(By.ID, 'log.login')
     login_btn.click()
     print("로그인: 로그인 작업 진행 완료\n")
-    time.sleep(2)
     a = input("2차 인증 여부 확인해주시고 아무거나 입력 후 엔터")
 
 def login_daum():
@@ -68,6 +74,7 @@ def login_daum():
     login_url = "https://logins.daum.net/accounts/ksso.do?url=https%3A%2F%2Fwww.daum.net"
     driver.get(login_url)
 
+    time.sleep(1)
     pyperclip.copy(auth)
     driver.find_element(By.ID, 'loginKey--1').send_keys(Keys.CONTROL + 'v')
     pyperclip.copy(auth_dic[auth])
@@ -76,77 +83,77 @@ def login_daum():
     login_btn = driver.find_element(By.CLASS_NAME, 'confirm_btn').find_element(By.CLASS_NAME, 'submit')
     login_btn.click()
     print("로그인: 로그인 작업 진행 완료\n")
-    time.sleep(2)
-    a = input("캡챠 및 2차 인증 여부 확인해주시고 아무거나 입력 후 엔터")
 
 
 def posting():
     driver.switch_to.window(tabs[1])
     driver.get(naver_url)
     print("링크 접속 완료")
-    time.sleep(1)
 
     # 포스팅
+    wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"나의활동")]')))
     driver.find_element(By.XPATH, '//a[contains(text(),"나의활동")]').click()
-    time.sleep(1)
+    wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
     driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
-    time.sleep(3)
+
 
     # frame으로 변환해야 게시글 확인이 가능하다#
+    time.sleep(1)
     driver.switch_to.frame("cafe_main")
     mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div[2]/table/tbody/tr[1]/td[1]/div[3]/div/a')
     mcn_lnk = mcn.get_attribute('href')
     driver.get(mcn_lnk)
-    time.sleep(2)
 
+    wait.until(EC.presence_of_element_located((By.NAME, "cafe_main")))
     driver.switch_to.frame("cafe_main")
+    wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')))
     mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')
     mcn_lnk = mcn.get_attribute('href')
     driver.get(mcn_lnk)
-    time.sleep(2)
 
+    wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea')))
     driver.find_element(By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea').click()
     action = ActionChains(driver)
     action.send_keys(title).perform()
     print("글쓰기 1/3: 제목 입력 완료")
 
-    time.sleep(1)
     content_html()
     driver.switch_to.window(tabs[1])
-    time.sleep(1)
+    wait.until(EC.presence_of_element_located((By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
     driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[0].click()
     ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
-
     print("글쓰기 2/3: html 코드 입력 완료")
 
     time.sleep(1)
     driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
     print("글쓰기 3/3: 업로드 완료")
-    time.sleep(2)
 
+    time.sleep(1)
     global posting_url_n
     posting_url_n = str(driver.current_url)
+    time.sleep(1)
 
 def posting_daum():
+    time.sleep(1)
     driver.switch_to.window(tabs[1])
     driver.get(daum_url)
     print("링크 접속 완료")
-    time.sleep(1)
-
     # 포스팅
+    time.sleep(1)
+    wait.until(EC.presence_of_element_located((By.NAME, "down")))
     driver.switch_to.frame("down")
     driver.find_element(By.CLASS_NAME, 'myList').find_element(By.CLASS_NAME, 'myFolder').click()
-    time.sleep(1)
+    wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
     driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
-    time.sleep(2)
 
     # 게시글 입력창 접근
+    wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')))
     mcn = driver.find_element(By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')
     mcn_lnk = mcn.get_attribute('href')
     driver.get(mcn_lnk)
-    time.sleep(1)
 
     # 게시글 입력창 접근
+    wait.until(EC.presence_of_element_located((By.NAME, 'down')))
     driver.switch_to.frame("down")
     driver.find_element(By.ID, 'article-write-btn-bottom').click()
 
@@ -162,10 +169,8 @@ def posting_daum():
     action.send_keys(title).perform()
     print("글쓰기 1/3: 제목 입력 완료")
 
-    time.sleep(1)
     content_html()
     driver.switch_to.window(tabs[1])
-    time.sleep(1)
     try:
         driver.switch_to.default_content()
         driver.switch_to.frame("down")
@@ -176,21 +181,21 @@ def posting_daum():
     ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
     print("글쓰기 2/3: html 코드 입력 완료")
 
-    time.sleep(1)
     driver.switch_to.default_content()
     driver.switch_to.frame("down")
     driver.find_element(By.XPATH, '//*[@id="primaryContent"]/div/div[5]/div[2]/button').click()
     print("글쓰기 3/3: 업로드 완료")
-    time.sleep(3)
 
-    time.sleep(1)
+    wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]')))
     driver.find_element(By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]').click()
     time.sleep(1)
     driver.switch_to.default_content()
     driver.switch_to.frame("down")
+
+    time.sleep(1)
     global posting_url_d
     posting_url_d = str(driver.current_url)
-
+    time.sleep(1)
 
 # 실행되는 라인
 print('본 프로그램에 등록되어 있는 id 는 다음과 같습니다:' + str(list(auth_dic.keys())))
@@ -261,20 +266,20 @@ for x in List:
             a = input()
     else:
         print('...')
-    i = 0
-    while i < len_daum:
+    ii = 0
+    while ii < len_daum:
         try:
-            daum_url = daum_list[i]
+            daum_url = daum_list[ii]
             posting_daum()
-            excel_1.iloc[i, 3] = "O"
-            excel_1.iloc[i, 1] = posting_url_d
+            excel_1.iloc[ii+i, 3] = "O"
+            excel_1.iloc[ii+i, 1] = posting_url_d
         except:
-            if i >= len_daum:
+            if ii >= len_daum:
                 pass
             else:
-                d_error_list.append(daum_list[i])
-                excel_1.iloc[i, 3] = "X"
-        i = i + 1
+                d_error_list.append(daum_list[ii])
+                excel_1.iloc[ii+i, 3] = "X"
+        ii = ii + 1
 
     daum_list = []
     len_daum = 0
