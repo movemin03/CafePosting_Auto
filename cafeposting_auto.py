@@ -56,14 +56,21 @@ def login():
     driver.get(login_url)
 
     pyperclip.copy(auth)
+    driver.find_element(By.ID, 'id').click()
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
+    ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
     driver.find_element(By.ID, 'id').send_keys(Keys.CONTROL + 'v')
+
     pyperclip.copy(auth_dic[auth])
+    driver.find_element(By.ID, 'pw').click()
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
+    ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
     driver.find_element(By.ID, 'pw').send_keys(Keys.CONTROL + 'v')
 
       # 최대 10초간 대기
     global wait
     wait = WebDriverWait(driver, 10)
-    wait.until(EC.presence_of_element_located((By.ID, "log.login")))
+    time.sleep(1)
     login_btn = driver.find_element(By.ID, 'log.login')
     login_btn.click()
     print("로그인: 로그인 작업 진행 완료\n")
@@ -76,8 +83,15 @@ def login_daum():
 
     time.sleep(1)
     pyperclip.copy(auth)
+    driver.find_element(By.ID, 'password--1').click()
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
+    ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
     driver.find_element(By.ID, 'loginKey--1').send_keys(Keys.CONTROL + 'v')
+    
     pyperclip.copy(auth_dic[auth])
+    driver.find_element(By.ID, 'password--2').click()
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
+    ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
     driver.find_element(By.ID, 'password--2').send_keys(Keys.CONTROL + 'v')
     time.sleep(1)
     login_btn = driver.find_element(By.CLASS_NAME, 'confirm_btn').find_element(By.CLASS_NAME, 'submit')
