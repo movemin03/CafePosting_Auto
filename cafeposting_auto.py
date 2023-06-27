@@ -11,7 +11,8 @@ from datetime import datetime
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-subprocess.Popen(r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\movem\\AppData\\Local\\Google\\Chrome\\User Data"')
+subprocess.Popen(
+    r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\movem\\AppData\\Local\\Google\\Chrome\\User Data"')
 option = Options()
 option.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 chrome_ver = 114
@@ -29,7 +30,19 @@ print("ver:" + ver)
 
 # 정보 입력
 print('필요한 정보를 기입해야합니다\n')
-auth_dic = {'ID': 'PW'}
+auth_dic = {'id':'pw'}
+blank_auth_dic = {}
+slash_auth_dic = {}
+# 슬레쉬 제거
+for key, value in auth_dic.items():
+    left_key = key.split('/')[0]
+    slash_auth_dic[left_key] = value
+auth_dic.update(slash_auth_dic)
+# 공백 제거
+for key, value in auth_dic.items():
+    new_key = key.strip()
+    blank_auth_dic[new_key] = value
+auth_dic.update(blank_auth_dic)
 print("게시물의 제목을 적어주십시오:")
 title = input()
 print("복사할 html 코드 위치를 입력해주세요:")
@@ -50,6 +63,8 @@ def content_html():
     driver.get(content_path)
     ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
     ActionChains(driver).key_down(Keys.CONTROL).send_keys('c').key_up(Keys.CONTROL).perform()
+
+
 def login():
     driver.switch_to.window(tabs[1])
     login_url = "https://nid.naver.com/nidlogin.login"
@@ -61,13 +76,18 @@ def login():
     ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
     driver.find_element(By.ID, 'id').send_keys(Keys.CONTROL + 'v')
 
-    pyperclip.copy(auth_dic[auth])
+    try:
+        password = auth_dic[auth]
+    except:
+        print("auth_dic을 가져오는 것에 오류가 있어서 패스워드를 수동입력해야 합니다:")
+        password = input()
+    pyperclip.copy(password)
     driver.find_element(By.ID, 'pw').click()
     ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
     ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
     driver.find_element(By.ID, 'pw').send_keys(Keys.CONTROL + 'v')
 
-      # 최대 10초간 대기
+    # 최대 10초간 대기
     global wait
     wait = WebDriverWait(driver, 10)
     time.sleep(1)
@@ -75,6 +95,7 @@ def login():
     login_btn.click()
     print("로그인: 로그인 작업 진행 완료\n")
     a = input("2차 인증 여부 확인해주시고 아무거나 입력 후 엔터")
+
 
 def login_daum():
     driver.switch_to.window(tabs[1])
@@ -87,8 +108,13 @@ def login_daum():
     ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
     ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
     driver.find_element(By.ID, 'loginKey--1').send_keys(Keys.CONTROL + 'v')
-    
-    pyperclip.copy(auth_dic[auth])
+
+    try:
+        password = auth_dic[auth]
+    except:
+        print("auth_dic을 가져오는 것에 오류가 있어서 패스워드를 수동입력해야 합니다:")
+        password = input()
+    pyperclip.copy(password)
     driver.find_element(By.ID, 'password--2').click()
     ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
     ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
@@ -105,25 +131,48 @@ def posting():
     print("링크 접속 완료")
 
     # 포스팅
-    wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"나의활동")]')))
-    driver.find_element(By.XPATH, '//a[contains(text(),"나의활동")]').click()
-    wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
-    driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
-
+    try:
+        wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"나의활동")]')))
+        driver.find_element(By.XPATH, '//a[contains(text(),"나의활동")]').click()
+        wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
+        driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
+    except:
+        print('활동정지, 카페강퇴 혹은 알 수 없는 시스템 메시지로 인해 글쓰기 진행이 어렵습니다. 3초 뒤 재시도합니다')
+        time.sleep(3)
+        try:
+            wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"나의활동")]')))
+            driver.find_element(By.XPATH, '//a[contains(text(),"나의활동")]').click()
+            wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
+            driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
+        except:
+            print('나의 활동 내용 항목에 접속할 수 없습니다. 가입하지 않았거나/강퇴/활동 정지가 있을 수 있습니다. ')
 
     # frame으로 변환해야 게시글 확인이 가능하다#
     time.sleep(1)
-    driver.switch_to.frame("cafe_main")
-    mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div[2]/table/tbody/tr[1]/td[1]/div[3]/div/a')
-    mcn_lnk = mcn.get_attribute('href')
-    driver.get(mcn_lnk)
+    former_post = 1
+    try:
+        driver.switch_to.frame("cafe_main")
+        mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div[2]/table/tbody/tr[1]/td[1]/div[3]/div/a')
+        mcn_lnk = mcn.get_attribute('href')
+        driver.get(mcn_lnk)
+
+    except:
+        print('이전 게시물이 없어서 프로그램이 참조할 것이 없습니다.')
+        former_post == 0
 
     wait.until(EC.presence_of_element_located((By.NAME, "cafe_main")))
     driver.switch_to.frame("cafe_main")
-    wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')))
-    mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')
-    mcn_lnk = mcn.get_attribute('href')
-    driver.get(mcn_lnk)
+
+    if former_post == 1:
+        wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')))
+        mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')
+        mcn_lnk = mcn.get_attribute('href')
+        driver.get(mcn_lnk)
+    else:
+        wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div[3]/div/a')))
+        mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div[3]/div/a')
+        mcn_lnk = mcn.get_attribute('href')
+        driver.get(mcn_lnk)
 
     wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea')))
     driver.find_element(By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea').click()
@@ -133,19 +182,21 @@ def posting():
 
     content_html()
     driver.switch_to.window(tabs[1])
-    wait.until(EC.presence_of_element_located((By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
+    wait.until(EC.presence_of_element_located(
+        (By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
     driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[0].click()
     ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
     print("글쓰기 2/3: html 코드 입력 완료")
 
-    time.sleep(1)
+    time.sleep(3)
     driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
     print("글쓰기 3/3: 업로드 완료")
 
     time.sleep(1)
     global posting_url_n
     posting_url_n = str(driver.current_url)
-    time.sleep(1)
+    time.sleep(2)
+
 
 def posting_daum():
     time.sleep(1)
@@ -154,11 +205,24 @@ def posting_daum():
     print("링크 접속 완료")
     # 포스팅
     time.sleep(1)
-    wait.until(EC.presence_of_element_located((By.NAME, "down")))
-    driver.switch_to.frame("down")
-    driver.find_element(By.CLASS_NAME, 'myList').find_element(By.CLASS_NAME, 'myFolder').click()
-    wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
-    driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
+    try:
+        wait.until(EC.presence_of_element_located((By.NAME, "down")))
+        driver.switch_to.frame("down")
+        driver.find_element(By.CLASS_NAME, 'myList').find_element(By.CLASS_NAME, 'myFolder').click()
+        wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
+        driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
+    except:
+        print('활동정지, 카페강퇴 혹은 알 수 없는 시스템 메시지로 인해 글쓰기 진행이 어렵습니다. 3초 뒤 재시도합니다')
+        time.sleep(3)
+        try:
+            driver.switch_to.default_content()
+            wait.until(EC.presence_of_element_located((By.NAME, "down")))
+            driver.switch_to.frame("down")
+            driver.find_element(By.CLASS_NAME, 'myList').find_element(By.CLASS_NAME, 'myFolder').click()
+            wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
+            driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
+        except:
+            print('내가 쓴 글 메뉴를 찾을 수 없습니다.')
 
     # 게시글 입력창 접근
     wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')))
@@ -195,6 +259,7 @@ def posting_daum():
     ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
     print("글쓰기 2/3: html 코드 입력 완료")
 
+    time.sleep(3)
     driver.switch_to.default_content()
     driver.switch_to.frame("down")
     driver.find_element(By.XPATH, '//*[@id="primaryContent"]/div/div[5]/div[2]/button').click()
@@ -210,6 +275,7 @@ def posting_daum():
     global posting_url_d
     posting_url_d = str(driver.current_url)
     time.sleep(1)
+
 
 # 실행되는 라인
 print('본 프로그램에 등록되어 있는 id 는 다음과 같습니다:' + str(list(auth_dic.keys())))
@@ -228,7 +294,7 @@ else:
     print('auth_dic 에 다음 값을 추가해야 합니다 : ' + str(set(input_id_list) - set(list(auth_dic.keys()))))
     print('추가 없이 진행 시, 추가하지 않은 id 는 업로드하지 않습니다\n')
     a = input
-#불필요한 기호 생략
+# 불필요한 기호 생략
 pre_list = pre_list.translate(str.maketrans("", "", "{}',"))
 
 List = [x for x in pre_list.split()]
@@ -245,15 +311,20 @@ for x in List:
     print(excel_1)
 
     url_list = list(excel_1['사이트주소'])
+
     naver_list = [x for x in url_list if "cafe.naver.com" in x]
     len_naver = len(naver_list)
     daum_list = [y for y in url_list if "cafe.daum.net" in y]
     len_daum = len(daum_list)
 
     if len_naver > 0:
-        login()
+        try:
+            login()
+        except:
+            print('이미 로그인이 진행되었거나 등의 이유로 로그인 오류가 발생했습니다. 수동 진행 후 아무 키 입력')
+            a = input()
     else:
-        print('...')
+        print('업로드할 네이버 링크가 없습니다')
     print("\n" + auth + " 아이디로 네이버 카페 " + str(len_naver) + "개, 다음 카페 " + str(len_daum) + "개를 진행하겠습니다")
     i = 0
     while i < len_naver:
@@ -276,29 +347,29 @@ for x in List:
         try:
             login_daum()
         except:
-            print("로그인이 이미 되어 있을 가능성이 있습니다.")
+            print('이미 로그인이 진행되었거나 등의 이유로 로그인 오류가 발생했습니다. 수동 진행 후 아무 키 입력')
             a = input()
     else:
-        print('...')
+        print('업로드할 다음 링크가 없습니다')
     ii = 0
     while ii < len_daum:
         try:
             daum_url = daum_list[ii]
             posting_daum()
-            excel_1.iloc[ii+i, 3] = "O"
-            excel_1.iloc[ii+i, 1] = posting_url_d
+            excel_1.iloc[ii + i, 3] = "O"
+            excel_1.iloc[ii + i, 1] = posting_url_d
         except:
             if ii >= len_daum:
                 pass
             else:
                 d_error_list.append(daum_list[ii])
-                excel_1.iloc[ii+i, 3] = "X"
+                excel_1.iloc[ii + i, 3] = "X"
         ii = ii + 1
 
     daum_list = []
     len_daum = 0
 
-    excel_1.to_excel('C:\\Users\\movem\\Desktop\\' + auth + execute_time +'_작업완료.xlsx')
+    excel_1.to_excel('C:\\Users\\movem\\Desktop\\' + auth + execute_time + '_작업완료.xlsx')
 
 if len(n_error_list) > 0:
     print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 네이버 카페:" + str(n_error_list))
