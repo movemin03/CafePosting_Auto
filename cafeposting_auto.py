@@ -54,6 +54,7 @@ upload_path = input().replace('"', '')
 print('\n 입력하신 엑셀파일을 읽어오고 있습니다')
 excel = pd.read_excel(upload_path, names=['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
 input_id_list = list(excel['사용아이디'].drop_duplicates())
+input_id_list = [string.strip() for string in input_id_list]
 
 n_error_list, d_error_list = [], []
 
@@ -130,6 +131,7 @@ def posting():
     driver.get(naver_url)
     print("링크 접속 완료")
 
+    error_myactivity = 0
     # 포스팅
     try:
         wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"나의활동")]')))
@@ -137,66 +139,79 @@ def posting():
         wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
         driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
     except:
-        print('활동정지, 카페강퇴 혹은 알 수 없는 시스템 메시지로 인해 글쓰기 진행이 어렵습니다. 3초 뒤 재시도합니다')
-        time.sleep(3)
+        print('오류: 가입되지 않은 카페 or 강퇴 or 활동정지에 의한 오류입니다. 아이디가 ' + auth + '가 맞는지 확인하고 아니라면 재로그인해주세요. 이후 아무키나 눌러주십시오')
+        a = input()
         try:
             wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"나의활동")]')))
             driver.find_element(By.XPATH, '//a[contains(text(),"나의활동")]').click()
             wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
             driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
         except:
-            print('나의 활동 내용 항목에 접속할 수 없습니다. 가입하지 않았거나/강퇴/활동 정지가 있을 수 있습니다. ')
+            print('오류: 가입되지 않은 카페 or 강퇴 or 활동정지에 의한 오류')
+            error_myactivity == 1
 
     # frame으로 변환해야 게시글 확인이 가능하다#
-    time.sleep(1)
-    former_post = 1
-    try:
+
+    if error_myactivity == 0:
+        time.sleep(1)
+        former_post = 1
+        try:
+            driver.switch_to.frame("cafe_main")
+            mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div[2]/table/tbody/tr[1]/td[1]/div[3]/div/a')
+            mcn_lnk = mcn.get_attribute('href')
+            driver.get(mcn_lnk)
+
+        except:
+            if error_myactivity == 0:
+                print('이전 게시물이 없어서 프로그램이 참조할 것이 없습니다.')
+                former_post == 0
+            else:
+                pass
+
+
+        wait.until(EC.presence_of_element_located((By.NAME, "cafe_main")))
         driver.switch_to.frame("cafe_main")
-        mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div[2]/table/tbody/tr[1]/td[1]/div[3]/div/a')
-        mcn_lnk = mcn.get_attribute('href')
-        driver.get(mcn_lnk)
+#이전 포스트가 있는 경우 링크 누르고, 없는 경우 새 글 작성
+        if former_post == 1:
+            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')))
+            mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')
+            mcn_lnk = mcn.get_attribute('href')
+            driver.get(mcn_lnk)
+        else:
+            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div[3]/div/a')))
+            mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div[3]/div/a')
+            mcn_lnk = mcn.get_attribute('href')
+            driver.get(mcn_lnk)
 
-    except:
-        print('이전 게시물이 없어서 프로그램이 참조할 것이 없습니다.')
-        former_post == 0
+        wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea')))
+        driver.find_element(By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea').click()
+        action = ActionChains(driver)
+        action.send_keys(title).perform()
+        print("글쓰기 1/3: 제목 입력 완료")
 
-    wait.until(EC.presence_of_element_located((By.NAME, "cafe_main")))
-    driver.switch_to.frame("cafe_main")
+        content_html()
+        driver.switch_to.window(tabs[1])
+        wait.until(EC.presence_of_element_located((By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
+        driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[0].click()
+        ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+        print("글쓰기 2/3: html 코드 입력 완료")
 
-    if former_post == 1:
-        wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')))
-        mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')
-        mcn_lnk = mcn.get_attribute('href')
-        driver.get(mcn_lnk)
+        if former_post == 0:
+            print('카테고리를 수동 변경해야 합니다. 카테고리를 설정해주세요. 수정 후 아무키나 눌러주세요')
+            a = input()
+        else:
+            pass
+
+        time.sleep(3)
+        driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
+        print("글쓰기 3/3: 업로드 완료")
+
+        time.sleep(1)
+        global posting_url_n
+        posting_url_n = str(driver.current_url)
+        time.sleep(2)
     else:
-        wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div[3]/div/a')))
-        mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div[3]/div/a')
-        mcn_lnk = mcn.get_attribute('href')
-        driver.get(mcn_lnk)
-
-    wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea')))
-    driver.find_element(By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea').click()
-    action = ActionChains(driver)
-    action.send_keys(title).perform()
-    print("글쓰기 1/3: 제목 입력 완료")
-
-    content_html()
-    driver.switch_to.window(tabs[1])
-    wait.until(EC.presence_of_element_located(
-        (By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
-    driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[0].click()
-    ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
-    print("글쓰기 2/3: html 코드 입력 완료")
-
-    time.sleep(3)
-    driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
-    print("글쓰기 3/3: 업로드 완료")
-
-    time.sleep(1)
-    global posting_url_n
-    posting_url_n = str(driver.current_url)
-    time.sleep(2)
-
+        pass
 
 def posting_daum():
     time.sleep(1)
@@ -204,6 +219,7 @@ def posting_daum():
     driver.get(daum_url)
     print("링크 접속 완료")
     # 포스팅
+    error_myactivity = 0
     time.sleep(1)
     try:
         wait.until(EC.presence_of_element_located((By.NAME, "down")))
@@ -212,8 +228,8 @@ def posting_daum():
         wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
         driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
     except:
-        print('활동정지, 카페강퇴 혹은 알 수 없는 시스템 메시지로 인해 글쓰기 진행이 어렵습니다. 3초 뒤 재시도합니다')
-        time.sleep(3)
+        print('오류: 가입되지 않은 카페 or 강퇴 or 활동정지에 의한 오류입니다. 아이디가 ' + auth + '가 맞는지 확인하고 아니라면 재로그인해주세요. 이후 아무키나 눌러주십시오')
+        a = input()
         try:
             driver.switch_to.default_content()
             wait.until(EC.presence_of_element_located((By.NAME, "down")))
@@ -222,59 +238,76 @@ def posting_daum():
             wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
             driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
         except:
-            print('내가 쓴 글 메뉴를 찾을 수 없습니다.')
+            print('오류: 가입되지 않은 카페 or 강퇴 or 활동정지에 의한 오류입니다')
+            error_myactivity == 1
+    former_post = 1
+    # 이전 게시글 입력창 접근
+    if error_myactivity == 0:
+        try:
+            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')))
+            mcn = driver.find_element(By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')
+            mcn_lnk = mcn.get_attribute('href')
+            driver.get(mcn_lnk)
 
-    # 게시글 입력창 접근
-    wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')))
-    mcn = driver.find_element(By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')
-    mcn_lnk = mcn.get_attribute('href')
-    driver.get(mcn_lnk)
+            # 게시글 입력창 접근
+            wait.until(EC.presence_of_element_located((By.NAME, 'down')))
+            driver.switch_to.frame("down")
+            driver.find_element(By.ID, 'article-write-btn-bottom').click()
+        except:
+            print('이전 게시물이 없어서 프로그램이 참조할 것이 없습니다.')
+            former_post == 0
+            try:
+                driver.find_element(By.XPATH, '//*[@id="cafe_write_article_btn"]/img').click()
+            except:
+                print("카페 글쓰기 버튼 클릭이 실패하여 수동으로 눌러주세요")
+            # 게시글 입력창
+        time.sleep(1)
+        try:
+            driver.find_element(By.CLASS_NAME, 'title__input').click()
+        except:
+            print('임시저장 글 원인으로 오류가 났습니다. 해결 후 엔터')
+            a = input()
+            driver.find_element(By.CLASS_NAME, 'title__input').click()
 
-    # 게시글 입력창 접근
-    wait.until(EC.presence_of_element_located((By.NAME, 'down')))
-    driver.switch_to.frame("down")
-    driver.find_element(By.ID, 'article-write-btn-bottom').click()
+        action = ActionChains(driver)
+        action.send_keys(title).perform()
+        print("글쓰기 1/3: 제목 입력 완료")
 
-    # 게시글 입력창
-    time.sleep(1)
-    try:
-        driver.find_element(By.CLASS_NAME, 'title__input').click()
-    except:
-        print('임시저장 글 원인으로 오류가 났습니다. 해결 후 엔터')
-        a = input()
-        driver.find_element(By.CLASS_NAME, 'title__input').click()
-    action = ActionChains(driver)
-    action.send_keys(title).perform()
-    print("글쓰기 1/3: 제목 입력 완료")
+        content_html()
+        driver.switch_to.window(tabs[1])
+        try:
+            driver.switch_to.default_content()
+            driver.switch_to.frame("down")
+            driver.switch_to.frame(driver.find_element(By.ID, 'keditorContainer_ifr'))
+        except:
+            print("iframe 바꾸기 실패")
+            driver.find_element(By.XPATH, '//*[@id="tinymce"]/p').click()
+            ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+            print("글쓰기 2/3: html 코드 입력 완료")
 
-    content_html()
-    driver.switch_to.window(tabs[1])
-    try:
+        if former_post == 0:
+            print('이전 게시글이 없어서 카테고리를 수동 조절해야 합니다. 수동 조절 후 아무거나 입력')
+            a = input
+        else:
+            pass
+        time.sleep(3)
         driver.switch_to.default_content()
         driver.switch_to.frame("down")
-        driver.switch_to.frame(driver.find_element(By.ID, 'keditorContainer_ifr'))
-    except:
-        print("iframe 바꾸기 실패")
-    driver.find_element(By.XPATH, '//*[@id="tinymce"]/p').click()
-    ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
-    print("글쓰기 2/3: html 코드 입력 완료")
+        driver.find_element(By.XPATH, '//*[@id="primaryContent"]/div/div[5]/div[2]/button').click()
+        print("글쓰기 3/3: 업로드 완료")
 
-    time.sleep(3)
-    driver.switch_to.default_content()
-    driver.switch_to.frame("down")
-    driver.find_element(By.XPATH, '//*[@id="primaryContent"]/div/div[5]/div[2]/button').click()
-    print("글쓰기 3/3: 업로드 완료")
+        wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]')))
+        driver.find_element(By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]').click()
+        time.sleep(1)
+        driver.switch_to.default_content()
+        driver.switch_to.frame("down")
 
-    wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]')))
-    driver.find_element(By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]').click()
-    time.sleep(1)
-    driver.switch_to.default_content()
-    driver.switch_to.frame("down")
-
-    time.sleep(1)
-    global posting_url_d
-    posting_url_d = str(driver.current_url)
-    time.sleep(1)
+        time.sleep(1)
+        global posting_url_d
+        posting_url_d = str(driver.current_url)
+        time.sleep(1)
+    else:
+        pass
 
 
 # 실행되는 라인
