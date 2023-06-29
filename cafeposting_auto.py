@@ -58,6 +58,8 @@ input_id_list = [string.strip() for string in input_id_list]
 
 n_error_list, d_error_list = [], []
 
+global wait
+wait = WebDriverWait(driver, 10)
 
 def content_html():
     driver.switch_to.window(tabs[0])
@@ -88,9 +90,6 @@ def login():
     ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
     driver.find_element(By.ID, 'pw').send_keys(Keys.CONTROL + 'v')
 
-    # 최대 10초간 대기
-    global wait
-    wait = WebDriverWait(driver, 10)
     time.sleep(1)
     login_btn = driver.find_element(By.ID, 'log.login')
     login_btn.click()
@@ -123,7 +122,9 @@ def login_daum():
     time.sleep(1)
     login_btn = driver.find_element(By.CLASS_NAME, 'confirm_btn').find_element(By.CLASS_NAME, 'submit')
     login_btn.click()
-    print("로그인: 로그인 작업 진행 완료\n")
+    print("로그인: 로그인 작업 진행 완료. 확인 후 아무키나 눌러주십시오\n")
+    a = input()
+
 
 
 def posting():
@@ -164,13 +165,14 @@ def posting():
         except:
             if error_myactivity == 0:
                 print('이전 게시물이 없어서 프로그램이 참조할 것이 없습니다.')
-                former_post == 0
+                former_post = 0
             else:
                 pass
 
-
+        driver.switch_to.default_content()
         wait.until(EC.presence_of_element_located((By.NAME, "cafe_main")))
         driver.switch_to.frame("cafe_main")
+        print(former_post)
 #이전 포스트가 있는 경우 링크 누르고, 없는 경우 새 글 작성
         if former_post == 1:
             wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')))
@@ -178,8 +180,11 @@ def posting():
             mcn_lnk = mcn.get_attribute('href')
             driver.get(mcn_lnk)
         else:
-            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div[3]/div/a')))
-            mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div[3]/div/a')
+            print('former post 없음')
+            wait.until(EC.presence_of_element_located((By.XPATH, '//span[contains(@class,"BaseButton__txt")]')))
+            print('찾기 실패')
+            mcn = driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').find_element(By.XPATH, './..')
+            print(mcn)
             mcn_lnk = mcn.get_attribute('href')
             driver.get(mcn_lnk)
 
@@ -200,9 +205,8 @@ def posting():
             print('카테고리를 수동 변경해야 합니다. 카테고리를 설정해주세요. 수정 후 아무키나 눌러주세요')
             a = input()
         else:
-            pass
+            time.sleep(3)
 
-        time.sleep(3)
         driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
         print("글쓰기 3/3: 업로드 완료")
 
@@ -222,9 +226,10 @@ def posting_daum():
     error_myactivity = 0
     time.sleep(1)
     try:
+        driver.switch_to.default_content()
         wait.until(EC.presence_of_element_located((By.NAME, "down")))
         driver.switch_to.frame("down")
-        driver.find_element(By.CLASS_NAME, 'myList').find_element(By.CLASS_NAME, 'myFolder').click()
+        driver.find_element(By.XPATH, '//span[contains(text(),"내 정보")]').click()
         wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
         driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
     except:
@@ -234,7 +239,7 @@ def posting_daum():
             driver.switch_to.default_content()
             wait.until(EC.presence_of_element_located((By.NAME, "down")))
             driver.switch_to.frame("down")
-            driver.find_element(By.CLASS_NAME, 'myList').find_element(By.CLASS_NAME, 'myFolder').click()
+            driver.find_element(By.XPATH, '//span[contains(text(),"내 정보")]').click()
             wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
             driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
         except:
@@ -255,20 +260,24 @@ def posting_daum():
             driver.find_element(By.ID, 'article-write-btn-bottom').click()
         except:
             print('이전 게시물이 없어서 프로그램이 참조할 것이 없습니다.')
-            former_post == 0
+            former_post = 0
             try:
                 driver.find_element(By.XPATH, '//*[@id="cafe_write_article_btn"]/img').click()
             except:
                 print("카페 글쓰기 버튼 클릭이 실패하여 수동으로 눌러주세요")
+                a = input()
             # 게시글 입력창
         time.sleep(1)
         try:
             driver.find_element(By.CLASS_NAME, 'title__input').click()
         except:
-            print('임시저장 글 원인으로 오류가 났습니다. 해결 후 엔터')
-            a = input()
-            driver.find_element(By.CLASS_NAME, 'title__input').click()
+            try:
+                driver.find_element(By.CLASS_NAME, 'title__input').click()
+            except:
+                print('임시저장 글 원인으로 오류가 났습니다. 해결 후 엔터')
+                a = input()
 
+        driver.find_element(By.CLASS_NAME, 'title__input').click()
         action = ActionChains(driver)
         action.send_keys(title).perform()
         print("글쓰기 1/3: 제목 입력 완료")
@@ -281,19 +290,19 @@ def posting_daum():
             driver.switch_to.frame(driver.find_element(By.ID, 'keditorContainer_ifr'))
         except:
             print("iframe 바꾸기 실패")
-            driver.find_element(By.XPATH, '//*[@id="tinymce"]/p').click()
-            ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
-            print("글쓰기 2/3: html 코드 입력 완료")
+
+        driver.find_element(By.XPATH, '//*[@id="tinymce"]/p').click()
+        ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+        print("글쓰기 2/3: html 코드 입력 완료")
 
         if former_post == 0:
             print('이전 게시글이 없어서 카테고리를 수동 조절해야 합니다. 수동 조절 후 아무거나 입력')
-            a = input
+            a = input()
         else:
-            pass
-        time.sleep(3)
+            time.sleep(3)
         driver.switch_to.default_content()
         driver.switch_to.frame("down")
-        driver.find_element(By.XPATH, '//*[@id="primaryContent"]/div/div[5]/div[2]/button').click()
+        driver.find_element(By.XPATH, '//button[contains(text(),"등록")]').click()
         print("글쓰기 3/3: 업로드 완료")
 
         wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]')))
@@ -354,10 +363,10 @@ for x in List:
         try:
             login()
         except:
-            print('이미 로그인이 진행되었거나 등의 이유로 로그인 오류가 발생했습니다. 수동 진행 후 아무 키 입력')
+            print('오류: 이미 로그인이 진행 or 자동로그인 기능 겹침 or id/pw 오류. 수동 진행 후 아무 키 입력. 수동 진행 후 아무 키 입력')
             a = input()
     else:
-        print('업로드할 네이버 링크가 없습니다')
+        print('업로드할 naver 링크가 없습니다')
     print("\n" + auth + " 아이디로 네이버 카페 " + str(len_naver) + "개, 다음 카페 " + str(len_daum) + "개를 진행하겠습니다")
     i = 0
     while i < len_naver:
@@ -378,12 +387,16 @@ for x in List:
 
     if len_daum > 0:
         try:
+            if "@" not in auth:
+                auth += "@daum.net"
+            else:
+                pass
             login_daum()
         except:
-            print('이미 로그인이 진행되었거나 등의 이유로 로그인 오류가 발생했습니다. 수동 진행 후 아무 키 입력')
+            print('오류: 이미 로그인이 진행 or 자동로그인 기능 겹침 or id/pw 오류. 수동 진행 후 아무 키 입력')
             a = input()
     else:
-        print('업로드할 다음 링크가 없습니다')
+        print('업로드할 daum 링크가 없습니다')
     ii = 0
     while ii < len_daum:
         try:
