@@ -94,7 +94,7 @@ def login():
     login_btn = driver.find_element(By.ID, 'log.login')
     login_btn.click()
     print("로그인: 로그인 작업 진행 완료\n")
-    a = input("2차 인증 여부 확인해주시고 아무거나 입력 후 엔터")
+    a = input("2차 인증 여부 및 아이디가 " + auth + "가 맞는지 확인해주시고 아무거나 입력 후 엔터")
 
 
 def login_daum():
@@ -122,8 +122,7 @@ def login_daum():
     time.sleep(1)
     login_btn = driver.find_element(By.CLASS_NAME, 'confirm_btn').find_element(By.CLASS_NAME, 'submit')
     login_btn.click()
-    print("로그인: 로그인 작업 진행 완료. 확인 후 아무키나 눌러주십시오\n")
-    a = input()
+    a = input("2차 인증 여부 및 아이디가 " + auth + "가 맞는지 확인해주시고 아무거나 입력 후 엔터")
 
 
 
@@ -172,7 +171,6 @@ def posting():
         driver.switch_to.default_content()
         wait.until(EC.presence_of_element_located((By.NAME, "cafe_main")))
         driver.switch_to.frame("cafe_main")
-        print(former_post)
 #이전 포스트가 있는 경우 링크 누르고, 없는 경우 새 글 작성
         if former_post == 1:
             wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')))
@@ -180,11 +178,8 @@ def posting():
             mcn_lnk = mcn.get_attribute('href')
             driver.get(mcn_lnk)
         else:
-            print('former post 없음')
             wait.until(EC.presence_of_element_located((By.XPATH, '//span[contains(@class,"BaseButton__txt")]')))
-            print('찾기 실패')
             mcn = driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').find_element(By.XPATH, './..')
-            print(mcn)
             mcn_lnk = mcn.get_attribute('href')
             driver.get(mcn_lnk)
 
