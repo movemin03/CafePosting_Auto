@@ -195,14 +195,17 @@ def posting():
         try:
             wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea')))
             driver.find_element(By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea').click()
-                        action = ActionChains(driver)
+
+            action = ActionChains(driver)
             action.send_keys(title).perform()
             print("글쓰기 1/3: 제목 입력 완료")
 
             content_html()
             driver.switch_to.window(tabs[1])
-            wait.until(EC.presence_of_element_located((By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
-            driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[0].click()
+            wait.until(EC.presence_of_element_located(
+                (By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
+            driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[
+                0].click()
             ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
             print("글쓰기 2/3: html 코드 입력 완료")
 
