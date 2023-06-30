@@ -59,7 +59,7 @@ input_id_list = [string.split("/")[0].strip() for string in input_id_list]
 n_error_list, d_error_list = [], []
 
 global wait
-wait = WebDriverWait(driver, 10)
+wait = WebDriverWait(driver, 5)
 
 def content_html():
     driver.switch_to.window(tabs[0])
@@ -134,21 +134,24 @@ def posting():
     error_myactivity = 0
     # 포스팅
     try:
-        wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"나의활동")]')))
-        driver.find_element(By.XPATH, '//a[contains(text(),"나의활동")]').click()
+        driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH, '//a[contains(text(),"나의활동")]').click()
         wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
         driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
     except:
-        print('오류: 가입되지 않은 카페 or 강퇴 or 활동정지에 의한 오류입니다. 아이디가 ' + auth + '가 맞는지 확인하고 아니라면 재로그인해주세요. 이후 아무키나 눌러주십시오')
-        a = input()
         try:
-            wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"나의활동")]')))
-            driver.find_element(By.XPATH, '//a[contains(text(),"나의활동")]').click()
+            driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH, '//a[contains(text(),"나의활동")]').click()
             wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
             driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
         except:
-            print('오류: 가입되지 않은 카페 or 강퇴 or 활동정지에 의한 오류')
-            error_myactivity == 1
+            print('오류: 가입되지 않은 카페 or 강퇴 or (낮은 확률로 활동정지)에 의한 오류입니다. 아이디가 ' + auth + '가 맞는지 확인하고 아니라면 재로그인해주세요. 이후 아무키나 눌러주십시오')
+            a = input()
+            try:
+                driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH, '//a[contains(text(),"나의활동")]').click()
+                wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
+                driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
+            except:
+                print('오류: 가입되지 않은 카페 or 강퇴 or (낮은 확률로 활동정지)에 의한 오류')
+                error_myactivity == 1
 
     # frame으로 변환해야 게시글 확인이 가능하다#
 
@@ -171,20 +174,31 @@ def posting():
         driver.switch_to.default_content()
         wait.until(EC.presence_of_element_located((By.NAME, "cafe_main")))
         driver.switch_to.frame("cafe_main")
-#이전 포스트가 있는 경우 링크 누르고, 없는 경우 새 글 작성
+#이전 포스트가 있는 경우 이전 포스트 내 글쓰기 누르고, 없는 경우정지상태 새 글 작성
+        global status_stop
+        status_stop = 0
         if former_post == 1:
-            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')))
-            mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')
-            mcn_lnk = mcn.get_attribute('href')
-            driver.get(mcn_lnk)
+            try:
+                wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')))
+                mcn = driver.find_element(By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')
+                mcn_lnk = mcn.get_attribute('href')
+                driver.get(mcn_lnk)
+            except:
+                print("높은 확률로 정지 상태입니다")
+                status_stop = 1
         else:
             wait.until(EC.presence_of_element_located((By.XPATH, '//span[contains(@class,"BaseButton__txt")]')))
             mcn = driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').find_element(By.XPATH, './..')
             mcn_lnk = mcn.get_attribute('href')
             driver.get(mcn_lnk)
 
-        wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea')))
-        driver.find_element(By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea').click()
+        try:
+            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea')))
+            driver.find_element(By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea').click()
+        except:
+            print("높은 확률로 정지 상태입니다")
+            status_stop = 1
+
         action = ActionChains(driver)
         action.send_keys(title).perform()
         print("글쓰기 1/3: 제목 입력 완료")
@@ -375,7 +389,10 @@ for x in List:
                 pass
             else:
                 n_error_list.append(naver_list[i])
-                excel_1.iloc[i, 3] = "X"
+                if status_stop == 1:
+                    excel_1.iloc[i, 3] = "X-활동정지"
+                else:
+                    excel_1.iloc[i, 3] = "X"
         i = i + 1
     naver_list = []
     len_naver = 0
