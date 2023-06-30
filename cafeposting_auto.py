@@ -154,7 +154,7 @@ def posting():
                 driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
             except:
                 print('오류: 가입되지 않은 카페 or 강퇴 or (낮은 확률로 활동정지)에 의한 오류')
-                error_myactivity == 1
+                error_myactivity = 1
 
     # frame으로 변환해야 게시글 확인이 가능하다#
 
@@ -263,7 +263,7 @@ def posting_daum():
             driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
         except:
             print('오류: 가입되지 않은 카페 or 강퇴 or 활동정지에 의한 오류입니다')
-            error_myactivity == 1
+            error_myactivity = 1
     former_post = 1
     # 이전 게시글 입력창 접근
     if error_myactivity == 0:
