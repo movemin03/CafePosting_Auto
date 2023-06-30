@@ -195,34 +195,33 @@ def posting():
         try:
             wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea')))
             driver.find_element(By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea').click()
+                        action = ActionChains(driver)
+            action.send_keys(title).perform()
+            print("글쓰기 1/3: 제목 입력 완료")
+
+            content_html()
+            driver.switch_to.window(tabs[1])
+            wait.until(EC.presence_of_element_located((By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
+            driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[0].click()
+            ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+            print("글쓰기 2/3: html 코드 입력 완료")
+
+            if former_post == 0:
+                print('카테고리를 수동 변경해야 합니다. 카테고리를 설정해주세요. 수정 후 아무키나 눌러주세요')
+                a = input()
+            else:
+                time.sleep(3)
+
+            driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
+            print("글쓰기 3/3: 업로드 완료")
+
+            time.sleep(1)
+            global posting_url_n
+            posting_url_n = str(driver.current_url)
+            time.sleep(2)
         except:
             print("높은 확률로 정지 상태입니다")
             status_stop = 1
-
-        action = ActionChains(driver)
-        action.send_keys(title).perform()
-        print("글쓰기 1/3: 제목 입력 완료")
-
-        content_html()
-        driver.switch_to.window(tabs[1])
-        wait.until(EC.presence_of_element_located((By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
-        driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[0].click()
-        ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
-        print("글쓰기 2/3: html 코드 입력 완료")
-
-        if former_post == 0:
-            print('카테고리를 수동 변경해야 합니다. 카테고리를 설정해주세요. 수정 후 아무키나 눌러주세요')
-            a = input()
-        else:
-            time.sleep(3)
-
-        driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
-        print("글쓰기 3/3: 업로드 완료")
-
-        time.sleep(1)
-        global posting_url_n
-        posting_url_n = str(driver.current_url)
-        time.sleep(2)
     else:
         pass
 
