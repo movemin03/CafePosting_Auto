@@ -54,7 +54,7 @@ upload_path = input().replace('"', '')
 print('\n 입력하신 엑셀파일을 읽어오고 있습니다')
 excel = pd.read_excel(upload_path, names=['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
 input_id_list = list(excel['사용아이디'].drop_duplicates())
-input_id_list = [string.strip() for string in input_id_list]
+input_id_list = [string.split("/")[0].strip() for string in input_id_list]
 
 n_error_list, d_error_list = [], []
 
