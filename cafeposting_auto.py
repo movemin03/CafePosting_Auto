@@ -64,8 +64,9 @@ wait = WebDriverWait(driver, 5)
 def content_html():
     driver.switch_to.window(tabs[0])
     driver.get(content_path)
-    ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
-    ActionChains(driver).key_down(Keys.CONTROL).send_keys('c').key_up(Keys.CONTROL).perform()
+    action = ActionChains(driver)
+    action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
+    action.key_down(Keys.CONTROL).send_keys('c').key_up(Keys.CONTROL).perform()
 
 
 def login():
@@ -75,8 +76,9 @@ def login():
 
     pyperclip.copy(auth)
     driver.find_element(By.ID, 'id').click()
-    ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
-    ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
+    action = ActionChains(driver)
+    action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
+    action.send_keys(Keys.BACKSPACE).perform()
     driver.find_element(By.ID, 'id').send_keys(Keys.CONTROL + 'v')
 
     try:
@@ -86,8 +88,8 @@ def login():
         password = input()
     pyperclip.copy(password)
     driver.find_element(By.ID, 'pw').click()
-    ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
-    ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
+    action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
+    action.send_keys(Keys.BACKSPACE).perform()
     driver.find_element(By.ID, 'pw').send_keys(Keys.CONTROL + 'v')
 
     time.sleep(1)
@@ -104,9 +106,10 @@ def login_daum():
 
     time.sleep(1)
     pyperclip.copy(auth)
+    action = ActionChains(driver)
     driver.find_element(By.ID, 'password--1').click()
-    ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
-    ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
+    action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
+    action.send_keys(Keys.BACKSPACE).perform()
     driver.find_element(By.ID, 'loginKey--1').send_keys(Keys.CONTROL + 'v')
 
     try:
@@ -116,8 +119,8 @@ def login_daum():
         password = input()
     pyperclip.copy(password)
     driver.find_element(By.ID, 'password--2').click()
-    ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
-    ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
+    action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
+    action.send_keys(Keys.BACKSPACE).perform()
     driver.find_element(By.ID, 'password--2').send_keys(Keys.CONTROL + 'v')
     time.sleep(1)
     login_btn = driver.find_element(By.CLASS_NAME, 'confirm_btn').find_element(By.CLASS_NAME, 'submit')
@@ -197,6 +200,7 @@ def posting():
             driver.find_element(By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea').click()
 
             action = ActionChains(driver)
+            action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
             action.send_keys(title).perform()
             print("글쓰기 1/3: 제목 입력 완료")
 
@@ -206,7 +210,8 @@ def posting():
                 (By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
             driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[
                 0].click()
-            ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+            action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
+            action.key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
             print("글쓰기 2/3: html 코드 입력 완료")
 
             if former_post == 0:
@@ -219,8 +224,11 @@ def posting():
             print("글쓰기 3/3: 업로드 완료")
 
             time.sleep(1)
-            global posting_url_n
-            posting_url_n = str(driver.current_url)
+            try:
+                global posting_url_n
+                posting_url_n = str(driver.current_url)
+            except:
+                posting_url_n = "금칙어로 인해 스팸함 이동. 본래 url: " + naver_url
             time.sleep(2)
         except:
             print("높은 확률로 정지 상태입니다")
@@ -303,7 +311,7 @@ def posting_daum():
             print("iframe 바꾸기 실패")
 
         driver.find_element(By.XPATH, '//*[@id="tinymce"]/p').click()
-        ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+        action.key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
         print("글쓰기 2/3: html 코드 입력 완료")
 
         if former_post == 0:
