@@ -54,7 +54,10 @@ upload_path = input().replace('"', '')
 print('\n 입력하신 엑셀파일을 읽어오고 있습니다')
 excel = pd.read_excel(upload_path, names=['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
 input_id_list = list(excel['사용아이디'].drop_duplicates())
-input_id_list = [string.split("/")[0].strip() for string in input_id_list]
+try:
+    input_id_list = [string.split("/")[0].strip() for string in input_id_list]
+except:
+    print("100 퍼센트의 확률로 제공하신 엑셀파일의 아이디 칸이 비어 있습니다. 프로그램을 재실행하시길 권장합니다")
 
 n_error_list, d_error_list = [], []
 
@@ -132,7 +135,16 @@ def login_daum():
 def posting():
     driver.switch_to.window(tabs[1])
     driver.get(naver_url)
-    print("링크 접속 완료")
+    try:
+        if error_posting_url == 1:
+            driver.switch_to.window(tabs[1])
+            driver.get(naver_url)
+        else:
+            pass
+    except NameError:
+        pass
+    print("링크 접속 완료: " + naver_url)
+
 
     error_myactivity = 0
     # 포스팅
@@ -227,8 +239,15 @@ def posting():
             try:
                 global posting_url_n
                 posting_url_n = str(driver.current_url)
+                if "articles/write" in posting_url_n:
+                    posting_url_n = "잘못된 링크가 들어갔으므로 수동 작업 필요:" + str(driver.current_url)
+                    error_posting_url = 1
+                else:
+                    error_posting_url = 0
+                    pass
             except:
-                posting_url_n = "금칙어로 인해 스팸함 이동. 본래 url: " + naver_url
+                posting_url_n = "금칙어 처리 혹은 연속된 게시물로 감지됨. 본래 url: " + naver_url
+                error_posting_url = 1
             time.sleep(2)
         except:
             print("높은 확률로 정지 상태입니다")
@@ -240,7 +259,7 @@ def posting_daum():
     time.sleep(1)
     driver.switch_to.window(tabs[1])
     driver.get(daum_url)
-    print("링크 접속 완료")
+    print("링크 접속 완료: " + daum_url)
     # 포스팅
     error_myactivity = 0
     time.sleep(1)
@@ -255,7 +274,7 @@ def posting_daum():
         print('오류: 가입되지 않은 카페 or 강퇴 or 활동정지에 의한 오류입니다. 아이디가 ' + auth + '가 맞는지 확인하고 아니라면 재로그인해주세요. 이후 아무키나 눌러주십시오')
         a = input()
         try:
-            driver.switch_to.default_content()
+            driver.get(daum_url)
             wait.until(EC.presence_of_element_located((By.NAME, "down")))
             driver.switch_to.frame("down")
             driver.find_element(By.XPATH, '//span[contains(text(),"내 정보")]').click()
