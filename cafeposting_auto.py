@@ -243,17 +243,14 @@ def posting():
             try:
                 global posting_url_n
                 posting_url_n = str(driver.current_url)
-                if "articles/write" in posting_url_n:
-                    posting_url_n = "잘못된 링크가 들어갔으므로 수동 작업 필요:" + str(driver.current_url)
+
+                if ("articles/write" in posting_url_n) or (posting_url_n.count('/') >= 4):
+                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요: {posting_url_n}"
                     error_posting_url = 1
-                elif posting_url_n.count('/') = 2:
-                    posting_url_n = "잘못된 링크가 들어갔으므로 수동 작업 필요:" + str(driver.current_url)
-                    error_posting_url = 1
-                elif posting_url_n = "NaN":
-                    posting_url_n = "잘못된 링크가 들어갔으므로 수동 작업 필요:" + naver_url
+                elif posting_url_n == "NaN":
+                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요:NaN:" + {naver_url}"
                     error_posting_url = 1
                 else:
-                    error_posting_url = 0
                     pass
             except:
                 posting_url_n = "금칙어 처리 혹은 연속된 게시물로 감지됨. 본래 url: " + naver_url
