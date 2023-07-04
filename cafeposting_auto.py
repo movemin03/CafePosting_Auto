@@ -11,16 +11,21 @@ from datetime import datetime
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+# 사용자가 환경에 따라 변경해야 할 값
+user = 'movem'
+ver = str("2023-07-04")
+auth_dic = {'id':'pw'}
+
+# 크롬드라이버 로
+
 subprocess.Popen(
-    r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\movem\\AppData\\Local\\Google\\Chrome\\User Data"')
+    r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\' + user + r'\\AppData\\Local\\Google\\Chrome\\User Data"')
 option = Options()
 option.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 chrome_ver = 114
 driver = webdriver.Chrome(options=option)
 driver.execute_script('window.open("about:blank", "_blank");')
 tabs = driver.window_handles
-
-ver = str("2023-06-25")
 
 # 안내
 print("\n")
@@ -30,7 +35,6 @@ print("ver:" + ver)
 
 # 정보 입력
 print('필요한 정보를 기입해야합니다\n')
-auth_dic = {'id':'pw'}
 blank_auth_dic = {}
 slash_auth_dic = {}
 # 슬레쉬 제거
@@ -442,6 +446,7 @@ for x in List:
     while ii < len_daum:
         try:
             daum_url = daum_list[ii]
+            driver = webdriver.Chrome(options=option)
             posting_daum()
             excel_1.iloc[ii + i, 3] = "O"
             excel_1.iloc[ii + i, 1] = posting_url_d
@@ -456,7 +461,7 @@ for x in List:
     daum_list = []
     len_daum = 0
 
-    excel_1.to_excel('C:\\Users\\movem\\Desktop\\' + auth + execute_time + '_작업완료.xlsx')
+    excel_1.to_excel('C:\\Users\\' + user + '\\Desktop\\' + auth + execute_time + '_작업완료.xlsx')
 
 if len(n_error_list) > 0:
     print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 네이버 카페:" + str(n_error_list))
