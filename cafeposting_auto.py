@@ -269,7 +269,7 @@ def posting_daum():
     time.sleep(1)
     try:
         driver.switch_to.default_content()
-        wait.until(EC.presence_of_element_located((By.NAME, "down")))
+        wait.until(EC.presence_of_element_located((By. ID, "down")))
         driver.switch_to.frame("down")
         driver.find_element(By.XPATH, '//span[contains(text(),"내 정보")]').click()
         wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
@@ -279,14 +279,19 @@ def posting_daum():
         a = input()
         try:
             driver.get(daum_url)
-            wait.until(EC.presence_of_element_located((By.NAME, "down")))
+            wait.until(EC.presence_of_element_located((By.ID, "down")))
             driver.switch_to.frame("down")
             driver.find_element(By.XPATH, '//span[contains(text(),"내 정보")]').click()
             wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
             driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
         except:
-            print('오류: 가입되지 않은 카페 or 강퇴 or 활동정지에 의한 오류입니다')
-            error_myactivity = 1
+            print("내 정보 - 내가 쓴 글을 수동으로 눌러주십시오. 이후 이행했다면 0 이행하지 못한다면 1을 눌러주십시오:")
+            while True:
+                error_myactivity = int(input("0 또는 1을 입력해주세요: "))
+                if error_myactivity == 0 or error_myactivity == 1:
+                    break
+                else:
+                    print("잘못된 입력입니다. 다시 입력해주세요.")
     former_post = 1
     # 이전 게시글 입력창 접근
     if error_myactivity == 0:
@@ -297,7 +302,7 @@ def posting_daum():
             driver.get(mcn_lnk)
 
             # 게시글 입력창 접근
-            wait.until(EC.presence_of_element_located((By.NAME, 'down')))
+            wait.until(EC.presence_of_element_located((By.ID, 'down')))
             driver.switch_to.frame("down")
             driver.find_element(By.ID, 'article-write-btn-bottom').click()
         except:
