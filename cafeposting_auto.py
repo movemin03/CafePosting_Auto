@@ -246,6 +246,12 @@ def posting():
                 if "articles/write" in posting_url_n:
                     posting_url_n = "잘못된 링크가 들어갔으므로 수동 작업 필요:" + str(driver.current_url)
                     error_posting_url = 1
+                elif posting_url_n.count('/') = 2:
+                    posting_url_n = "잘못된 링크가 들어갔으므로 수동 작업 필요:" + str(driver.current_url)
+                    error_posting_url = 1
+                elif posting_url_n = "NaN":
+                    posting_url_n = "잘못된 링크가 들어갔으므로 수동 작업 필요:" + naver_url
+                    error_posting_url = 1
                 else:
                     error_posting_url = 0
                     pass
@@ -422,6 +428,7 @@ for x in List:
             posting()
             excel_1.iloc[i, 3] = "O"
             excel_1.iloc[i, 1] = posting_url_n
+            posting_url_n = "NaN"
         except:
             if i >= len_naver:
                 pass
