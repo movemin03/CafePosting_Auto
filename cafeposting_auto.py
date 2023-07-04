@@ -248,7 +248,7 @@ def posting():
                     posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요: {posting_url_n}"
                     error_posting_url = 1
                 elif posting_url_n == "NaN":
-                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요:NaN:" + {naver_url}"
+                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요:NaN: + {naver_url}"
                     error_posting_url = 1
                 else:
                     pass
