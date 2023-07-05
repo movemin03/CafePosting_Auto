@@ -15,6 +15,7 @@ from selenium.webdriver.support import expected_conditions as EC
 user = 'movem'
 ver = str("2023-07-04")
 auth_dic = {'id':'pw'}
+chrome_ver = 114
 
 # 크롬드라이버로
 
