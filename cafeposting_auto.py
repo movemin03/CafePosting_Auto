@@ -16,13 +16,13 @@ user = 'movem'
 ver = str("2023-07-04")
 auth_dic = {'id':'pw'}
 
-# 크롬드라이버 로
+# 크롬드라이버로
 
 subprocess.Popen(
     r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\' + user + r'\\AppData\\Local\\Google\\Chrome\\User Data"')
 option = Options()
 option.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
-chrome_ver = 114
+
 driver = webdriver.Chrome(options=option)
 driver.execute_script('window.open("about:blank", "_blank");')
 tabs = driver.window_handles
@@ -59,6 +59,7 @@ print('\n 입력하신 엑셀파일을 읽어오고 있습니다')
 excel = pd.read_excel(upload_path, names=['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
 input_id_list = list(excel['사용아이디'].drop_duplicates())
 try:
+    input_id_list = [item.strip() for item in input_id_list]
     input_id_list = [string.split("/")[0].strip() for string in input_id_list]
 except:
     print("100 퍼센트의 확률로 제공하신 엑셀파일의 아이디 칸이 비어 있습니다. 프로그램을 재실행하시길 권장합니다")
@@ -137,7 +138,12 @@ def login_daum():
 
 
 def posting():
-    driver.switch_to.window(tabs[1])
+    if len(driver.window_handles) == 2:
+        driver.switch_to.window(tabs[1])
+    else:
+        print("새 탭이 없습니다.")
+        driver.execute_script('window.open("about:blank", "_blank");')
+        driver.switch_to.window(tabs[1])
     driver.get(naver_url)
     try:
         if error_posting_url == 1:
@@ -238,17 +244,24 @@ def posting():
 
             driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
             print("글쓰기 3/3: 업로드 완료")
-
-            time.sleep(1)
             try:
+                driver.switch_to.default_content()
+                wait.until(EC.presence_of_element_located((By.NAME, "cafe_main")))
+                driver.switch_to.frame("cafe_main")
+                wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"URL 복사")]')))
+                print("wait good")
+            except:
+                print("wait bad")
                 global posting_url_n
-                posting_url_n = str(driver.current_url)
+                posting_url_n = "NaN"
+            try:
 
-                if ("articles/write" in posting_url_n) or (posting_url_n.count('/') >= 4):
-                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요: {posting_url_n}"
+                posting_url_n = str(driver.current_url)
+                if posting_url_n == "NaN":
+                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요:NaN: {naver_url}"
                     error_posting_url = 1
-                elif posting_url_n == "NaN":
-                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요:NaN: + {naver_url}"
+                elif ("articles/write" in posting_url_n):
+                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요: {posting_url_n}"
                     error_posting_url = 1
                 else:
                     pass
@@ -263,8 +276,12 @@ def posting():
         pass
 
 def posting_daum():
-    time.sleep(1)
-    driver.switch_to.window(tabs[1])
+    if len(driver.window_handles) == 2:
+        driver.switch_to.window(tabs[1])
+    else:
+        print("새 탭이 없습니다.")
+        driver.execute_script('window.open("about:blank", "_blank");')
+        driver.switch_to.window(tabs[1])
     driver.get(daum_url)
     print("링크 접속 완료: " + daum_url)
     # 포스팅
@@ -299,6 +316,7 @@ def posting_daum():
     # 이전 게시글 입력창 접근
     if error_myactivity == 0:
         try:
+            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')))
             wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')))
             mcn = driver.find_element(By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')
             mcn_lnk = mcn.get_attribute('href')
@@ -422,10 +440,14 @@ for x in List:
     while i < len_naver:
         try:
             naver_url = naver_list[i]
+            error_posting_url = 0
             posting()
-            excel_1.iloc[i, 3] = "O"
-            excel_1.iloc[i, 1] = posting_url_n
-            posting_url_n = "NaN"
+            if error_posting_url == 0:
+                excel_1.iloc[i, 3] = "O"
+                excel_1.iloc[i, 1] = posting_url_n
+            else:
+                excel_1.iloc[i, 3] = "세모"
+                excel_1.iloc[i, 1] = posting_url_n
         except:
             if i >= len_naver:
                 pass
