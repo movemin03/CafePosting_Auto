@@ -23,7 +23,6 @@ subprocess.Popen(
     r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\' + user + r'\\AppData\\Local\\Google\\Chrome\\User Data"')
 option = Options()
 option.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
-
 driver = webdriver.Chrome(options=option)
 driver.execute_script('window.open("about:blank", "_blank");')
 tabs = driver.window_handles
@@ -79,7 +78,19 @@ def content_html():
 
 
 def login():
-    driver.switch_to.window(tabs[1])
+    tabs = driver.window_handles
+    try:
+        if len(driver.window_handles) == 2:
+            driver.switch_to.window(tabs[1])
+        else:
+            print("새 탭이 없습니다.")
+            driver.execute_script('window.open("www.naver.com", "_blank");')
+            time.sleep(2)
+            driver.switch_to.window(driver.window_handles[1])
+    except:
+        driver.switch_to.window(tabs[1])
+        print("탭 관리에 문제가 있습니다")
+
     login_url = "https://nid.naver.com/nidlogin.login"
     driver.get(login_url)
 
@@ -109,7 +120,19 @@ def login():
 
 
 def login_daum():
-    driver.switch_to.window(tabs[1])
+    tabs = driver.window_handles
+    try:
+        if len(driver.window_handles) == 2:
+            driver.switch_to.window(tabs[1])
+        else:
+            print("새 탭이 없습니다.")
+            driver.execute_script('window.open("www.daum.net", "_blank");')
+            time.sleep(2)
+            driver.switch_to.window(driver.window_handles[1])
+    except:
+        driver.switch_to.window(tabs[1])
+        print("탭 관리에 문제가 있습니다")
+
     login_url = "https://logins.daum.net/accounts/ksso.do?url=https%3A%2F%2Fwww.daum.net"
     driver.get(login_url)
 
@@ -139,12 +162,19 @@ def login_daum():
 
 
 def posting():
-    if len(driver.window_handles) == 2:
+    print(len(driver.window_handles))
+    tabs = driver.window_handles
+    try:
+        if len(driver.window_handles) == 2:
+            driver.switch_to.window(tabs[1])
+        else:
+            print("새 탭이 없습니다.")
+            driver.execute_script('window.open("www.naver.com", "_blank");')
+            time.sleep(2)
+            driver.switch_to.window(driver.window_handles[1])
+    except:
         driver.switch_to.window(tabs[1])
-    else:
-        print("새 탭이 없습니다.")
-        driver.execute_script('window.open("about:blank", "_blank");')
-        driver.switch_to.window(tabs[1])
+        print("탭 관리에 문제가 있습니다")
     driver.get(naver_url)
     try:
         if error_posting_url == 1:
@@ -245,29 +275,22 @@ def posting():
 
             driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
             print("글쓰기 3/3: 업로드 완료")
-            try:
-                driver.switch_to.default_content()
-                wait.until(EC.presence_of_element_located((By.NAME, "cafe_main")))
-                driver.switch_to.frame("cafe_main")
-                wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"URL 복사")]')))
-                print("wait good")
-            except:
-                print("wait bad")
-                global posting_url_n
-                posting_url_n = "NaN"
-            try:
 
+            time.sleep(1)
+            try:
+                global posting_url_n
                 posting_url_n = str(driver.current_url)
-                if posting_url_n == "NaN":
-                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요:NaN: {naver_url}"
-                    error_posting_url = 1
-                elif ("articles/write" in posting_url_n):
+
+                if "articles/write" in posting_url_n:
                     posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요: {posting_url_n}"
+                    error_posting_url = 1
+                elif posting_url_n == "NaN":
+                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요:NaN: + {naver_url}"
                     error_posting_url = 1
                 else:
                     pass
             except:
-                posting_url_n = "금칙어 처리 혹은 연속된 게시물로 감지됨. 본래 url: " + naver_url
+                posting_url_n = "금칙어 처리 혹은 연속된 게시물 또는 창이 꺼짐. 본래 url: " + naver_url
                 error_posting_url = 1
             time.sleep(2)
         except:
@@ -277,12 +300,18 @@ def posting():
         pass
 
 def posting_daum():
-    if len(driver.window_handles) == 2:
+    tabs = driver.window_handles
+    try:
+        if len(driver.window_handles) >= 2:
+            driver.switch_to.window(tabs[1])
+        else:
+            print("새 탭이 없습니다.")
+            driver.execute_script('window.open("www.daum.net", "_blank");')
+            time.sleep(2)
+            driver.switch_to.window(driver.window_handles[1])
+    except:
         driver.switch_to.window(tabs[1])
-    else:
-        print("새 탭이 없습니다.")
-        driver.execute_script('window.open("about:blank", "_blank");')
-        driver.switch_to.window(tabs[1])
+        print("탭 관리에 문제가 있습니다")
     driver.get(daum_url)
     print("링크 접속 완료: " + daum_url)
     # 포스팅
@@ -293,18 +322,22 @@ def posting_daum():
         wait.until(EC.presence_of_element_located((By. ID, "down")))
         driver.switch_to.frame("down")
         driver.find_element(By.XPATH, '//span[contains(text(),"내 정보")]').click()
-        wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
-        driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
+        try:
+            wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
+            driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
+        except:
+            wait.until(EC.presence_of_element_located(By.XPATH, '//*[@id="myinfo_list"]/ul/li[3]/span[1]/a'))
+            driver.find_element(By.XPATH, '//*[@id="myinfo_list"]/ul/li[3]/span[1]/a').click()
     except:
         print('오류: 가입되지 않은 카페 or 강퇴 or 활동정지에 의한 오류입니다. 아이디가 ' + auth + '가 맞는지 확인하고 아니라면 재로그인해주세요. 이후 아무키나 눌러주십시오')
         a = input()
         try:
-            driver.get(daum_url)
-            wait.until(EC.presence_of_element_located((By.ID, "down")))
-            driver.switch_to.frame("down")
-            driver.find_element(By.XPATH, '//span[contains(text(),"내 정보")]').click()
-            wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
-            driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
+            try:
+                wait.until(EC.element_to_be_clickable((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
+                driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
+            except:
+                wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="myinfo_list"]/ul/li[3]/span[1]/a')))
+                driver.find_element(By.XPATH, '//*[@id="myinfo_list"]/ul/li[3]/span[1]/a').click()
         except:
             print("내 정보 - 내가 쓴 글을 수동으로 눌러주십시오. 이후 이행했다면 0 이행하지 못한다면 1을 눌러주십시오:")
             while True:
@@ -374,15 +407,18 @@ def posting_daum():
         driver.find_element(By.XPATH, '//button[contains(text(),"등록")]').click()
         print("글쓰기 3/3: 업로드 완료")
 
-        wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]')))
-        driver.find_element(By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]').click()
-        time.sleep(1)
-        driver.switch_to.default_content()
-        driver.switch_to.frame("down")
+        try:
+            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]')))
+            driver.find_element(By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]').click()
+            time.sleep(1)
+            driver.switch_to.default_content()
+            driver.switch_to.frame("down")
 
-        time.sleep(1)
-        global posting_url_d
-        posting_url_d = str(driver.current_url)
+            time.sleep(1)
+            global posting_url_d
+            posting_url_d = str(driver.current_url)
+        except:
+            posting_url_d = "업로드 링크를 가져오기 실패: 창 꺼짐, 포스팅 금지 등의 사유"
         time.sleep(1)
     else:
         pass
@@ -441,14 +477,10 @@ for x in List:
     while i < len_naver:
         try:
             naver_url = naver_list[i]
-            error_posting_url = 0
             posting()
-            if error_posting_url == 0:
-                excel_1.iloc[i, 3] = "O"
-                excel_1.iloc[i, 1] = posting_url_n
-            else:
-                excel_1.iloc[i, 3] = "세모"
-                excel_1.iloc[i, 1] = posting_url_n
+            excel_1.iloc[i, 3] = "O"
+            excel_1.iloc[i, 1] = posting_url_n
+            posting_url_n = "NaN"
         except:
             if i >= len_naver:
                 pass
