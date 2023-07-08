@@ -78,18 +78,17 @@ def content_html():
 
 
 def login():
-    tabs = driver.window_handles
     try:
-        if len(driver.window_handles) == 2:
-            driver.switch_to.window(tabs[1])
+        if len(driver.window_handles) >= 2:
+            driver.switch_to.window(driver.window_handles[1])
         else:
             print("새 탭이 없습니다.")
-            driver.execute_script('window.open("www.naver.com", "_blank");')
+            driver.execute_script('window.open("", "_blank");')
             time.sleep(2)
             driver.switch_to.window(driver.window_handles[1])
     except:
-        driver.switch_to.window(tabs[1])
         print("탭 관리에 문제가 있습니다")
+        driver.switch_to.window(driver.window_handles[1])
 
     login_url = "https://nid.naver.com/nidlogin.login"
     driver.get(login_url)
@@ -120,19 +119,17 @@ def login():
 
 
 def login_daum():
-    tabs = driver.window_handles
     try:
-        if len(driver.window_handles) == 2:
-            driver.switch_to.window(tabs[1])
+        if len(driver.window_handles) >= 2:
+            driver.switch_to.window(driver.window_handles[1])
         else:
             print("새 탭이 없습니다.")
-            driver.execute_script('window.open("www.daum.net", "_blank");')
+            driver.execute_script('window.open("", "_blank");')
             time.sleep(2)
             driver.switch_to.window(driver.window_handles[1])
     except:
-        driver.switch_to.window(tabs[1])
         print("탭 관리에 문제가 있습니다")
-
+        driver.switch_to.window(driver.window_handles[1])
     login_url = "https://logins.daum.net/accounts/ksso.do?url=https%3A%2F%2Fwww.daum.net"
     driver.get(login_url)
 
@@ -162,19 +159,21 @@ def login_daum():
 
 
 def posting():
-    print(len(driver.window_handles))
-    tabs = driver.window_handles
     try:
-        if len(driver.window_handles) == 2:
-            driver.switch_to.window(tabs[1])
+        if len(driver.window_handles) >= 2:
+            driver.switch_to.window(driver.window_handles[1])
         else:
             print("새 탭이 없습니다.")
-            driver.execute_script('window.open("www.naver.com", "_blank");')
+            driver.execute_script('window.open("", "_blank");')
             time.sleep(2)
             driver.switch_to.window(driver.window_handles[1])
+        driver.get(naver_url)
+        print("링크 접속 완료: " + naver_url)
     except:
-        driver.switch_to.window(tabs[1])
         print("탭 관리에 문제가 있습니다")
+        driver.switch_to.window(driver.window_handles[1])
+        driver.get(daum_url)
+        print("링크 접속 완료: " + naver_url)
     driver.get(naver_url)
     try:
         if error_posting_url == 1:
@@ -300,20 +299,22 @@ def posting():
         pass
 
 def posting_daum():
-    tabs = driver.window_handles
     try:
         if len(driver.window_handles) >= 2:
-            driver.switch_to.window(tabs[1])
+            driver.switch_to.window(driver.window_handles[0])
         else:
             print("새 탭이 없습니다.")
-            driver.execute_script('window.open("www.daum.net", "_blank");')
+            driver.execute_script('window.open("", "_blank");')
             time.sleep(2)
-            driver.switch_to.window(driver.window_handles[1])
+            driver.switch_to.window(driver.window_handles[0])
+        driver.get(daum_url)
+        print("링크 접속 완료: " + daum_url)
     except:
-        driver.switch_to.window(tabs[1])
         print("탭 관리에 문제가 있습니다")
-    driver.get(daum_url)
-    print("링크 접속 완료: " + daum_url)
+        driver.switch_to.window(driver.window_handles[0])
+        driver.get(daum_url)
+        print("링크 접속 완료: " + daum_url)
+
     # 포스팅
     error_myactivity = 0
     time.sleep(1)
@@ -322,12 +323,14 @@ def posting_daum():
         wait.until(EC.presence_of_element_located((By. ID, "down")))
         driver.switch_to.frame("down")
         driver.find_element(By.XPATH, '//span[contains(text(),"내 정보")]').click()
-        try:
-            wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글")]')))
-            driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글")]').click()
-        except:
-            wait.until(EC.presence_of_element_located(By.XPATH, '//*[@id="myinfo_list"]/ul/li[3]/span[1]/a'))
-            driver.find_element(By.XPATH, '//*[@id="myinfo_list"]/ul/li[3]/span[1]/a').click()
+        time.sleep(2)
+        img_elem = driver.find_element(By.XPATH, '//*[@id="cafe_write_article_btn"]/img')
+        parent_elem = img_elem.find_element(By.XPATH, './..')
+        mcn = parent_elem.get_attribute('href')
+        result = re.search(r'grpid=(.*?)&fldid', mcn)
+        user_value = result.group(1)
+        mcn_link = "https://cafe.daum.net/_c21_/member_article_cafesearch?item=userid&grpid=" + str(user_value)
+        driver.get(mcn_link)
     except:
         print('오류: 가입되지 않은 카페 or 강퇴 or 활동정지에 의한 오류입니다. 아이디가 ' + auth + '가 맞는지 확인하고 아니라면 재로그인해주세요. 이후 아무키나 눌러주십시오')
         a = input()
@@ -350,9 +353,12 @@ def posting_daum():
     # 이전 게시글 입력창 접근
     if error_myactivity == 0:
         try:
-            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')))
-            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')))
-            mcn = driver.find_element(By.XPATH, '//*[@id="searchCafeList"]/tbody/tr[1]/td[3]/a')
+            driver.switch_to.default_content()
+            wait.until(EC.presence_of_element_located((By.ID, "down")))
+            driver.switch_to.frame("down")
+
+            time.sleep(2)
+            mcn = driver.find_elements(By.CLASS_NAME, 'subject')[1].find_element(By.XPATH, './*[2]')
             mcn_lnk = mcn.get_attribute('href')
             driver.get(mcn_lnk)
 
@@ -408,17 +414,20 @@ def posting_daum():
         print("글쓰기 3/3: 업로드 완료")
 
         try:
-            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]')))
-            driver.find_element(By.XPATH, '//*[@id="etc"]/div[2]/div/a[1]/span[2]').click()
-            time.sleep(1)
             driver.switch_to.default_content()
+            wait.until(EC.presence_of_element_located((By.ID, 'down')))
             driver.switch_to.frame("down")
-
+            print("프레임 변환 완료")
             time.sleep(1)
+            mcn = driver.find_element(By.CLASS_NAME, 'btn_center05').find_element(By.XPATH, "./*").get_attribute('href')
+            driver.get(mcn)
+            time.sleep(1)
+
             global posting_url_d
             posting_url_d = str(driver.current_url)
-        except:
-            posting_url_d = "업로드 링크를 가져오기 실패: 창 꺼짐, 포스팅 금지 등의 사유"
+        except Exception as e:
+            print("오류 발생:", e)
+            posting_url_d = "업로드 링크를 가져오기 실패: 창 꺼짐, 포스팅 금지 등의 사유: " + daum_url
         time.sleep(1)
     else:
         pass
