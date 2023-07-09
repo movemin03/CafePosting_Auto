@@ -16,6 +16,7 @@ user = 'movem'
 ver = str("2023-07-04")
 auth_dic = {'id':'pw'}
 chrome_ver = 114
+filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
 
 # 크롬드라이버로
 
@@ -468,8 +469,7 @@ def combined():
                 print("숨김 행:" + str(none_value_keys))
 
                 excel = pd.read_excel(xlsx_file, header=0, skiprows=lambda x: x+1 in none_value_keys)
-                print(excel)
-                excel_re = excel[['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']]
+                excel_re = excel[filter_list]
                 print(excel_re)
             # 데이터프레임 리스트에 추가합니다.
                 dfs.append(excel_re)
