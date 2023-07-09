@@ -156,8 +156,6 @@ def login_daum():
     login_btn.click()
     a = input("2차 인증 여부 및 아이디가 " + auth + "가 맞는지 확인해주시고 아무거나 입력 후 엔터")
 
-
-
 def posting():
     try:
         if len(driver.window_handles) >= 2:
@@ -432,6 +430,50 @@ def posting_daum():
     else:
         pass
 
+def combined():
+    print('파일 병합을 하시겠습니까? y/n')
+    a = input()
+    if a == "y":
+        combine_path = "C:\\Users\\" + user + "\\Desktop\\결과"
+        print("병합된 파일은 여기에 저장됩니다: " + combine_path)
+        print('위치 변경을 원하시나요? 변경 원한다면 y 입력')
+        a = input()
+        if a == "y":
+            combine_path = input().replace('"', '')
+            combine_path = combine_path + "\\"
+        else:
+            combine_path = combine_path + "\\"
+
+        target = (str(combine_path) + '*.xlsx')
+        xlsx_list = glob.glob(target)
+
+        print("현재 있는 파일 :" + str(xlsx_list))
+
+    # 빈 데이터프레임 리스트를 생성합니다.
+        dfs = []
+
+    # 각 xlsx 파일에 대해 반복합니다.
+        try:
+            for xlsx_file in xlsx_list:
+        # 주어진 파일을 데이터프레임으로 읽어들입니다.
+                excel = pd.read_excel(xlsx_file, names=['순번', '사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
+        # 데이터프레임 리스트에 추가합니다.
+                dfs.append(excel)
+
+    # 데이터프레임을 모두 결합합니다.
+            combined_df = pd.concat(dfs, ignore_index=True)
+            combined_df.drop('순번', axis=1, inplace=True)
+
+    # 새 엑셀 파일 저장하기
+            output_file = os.path.join(combine_path, "combined.xlsx")
+            combined_df.to_excel(output_file, index=False, header=True)
+            print(f"합쳐진 파일이 {output_file}에 저장되었습니다.")
+            error_code = 0
+        except:
+            print("형식이 다른 파일이 끼어있습니다. 찾아서 삭제해주세요. 다시 시도합니다: ")
+            error_code = 1
+    else:
+        pass
 
 # 실행되는 라인
 print('본 프로그램에 등록되어 있는 id 는 다음과 같습니다:' + str(list(auth_dic.keys())))
@@ -534,7 +576,13 @@ for x in List:
     daum_list = []
     len_daum = 0
 
-    excel_1.to_excel('C:\\Users\\' + user + '\\Desktop\\' + auth + execute_time + '_작업완료.xlsx')
+    # 결과 폴더 경로 지정
+    result_dir = 'C:\\Users\\' + user + '\\Desktop\\결과'
+
+    # 결과 폴더가 없으면 생성
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    excel_1.to_excel(result_dir + "\\" + auth + execute_time + '_작업완료.xlsx')
 
 if len(n_error_list) > 0:
     print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 네이버 카페:" + str(n_error_list))
@@ -545,4 +593,7 @@ if len(d_error_list) > 0:
 else:
     pass
 print('작업완료된 내역을 엑셀 파일로 저장하였습니다.')
-a = input()
+
+error_code = 0
+while error_code == 0:
+    combined()
