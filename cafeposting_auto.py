@@ -10,6 +10,7 @@ import subprocess
 from datetime import datetime
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from openpyxl import load_workbook
 
 # 사용자가 환경에 따라 변경해야 할 값
 user = 'movem'
