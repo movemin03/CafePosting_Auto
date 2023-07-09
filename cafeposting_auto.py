@@ -445,36 +445,49 @@ def combined():
             combine_path = combine_path + "\\"
 
         target = (str(combine_path) + '*.xlsx')
+        print(target)
         xlsx_list = glob.glob(target)
 
         print("현재 있는 파일 :" + str(xlsx_list))
 
-    # 빈 데이터프레임 리스트를 생성합니다.
         dfs = []
-
-    # 각 xlsx 파일에 대해 반복합니다.
         try:
+        # 각 xlsx 파일에 대해 반복합니다.
             for xlsx_file in xlsx_list:
-        # 주어진 파일을 데이터프레임으로 읽어들입니다.
-                excel = pd.read_excel(xlsx_file, names=['순번', '사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
-        # 데이터프레임 리스트에 추가합니다.
-                dfs.append(excel)
+            # 엑셀 파일 읽기
+                wb = load_workbook(xlsx_file)
+                ws = wb.active
+                row_heights = {}
 
-    # 데이터프레임을 모두 결합합니다.
-            combined_df = pd.concat(dfs, ignore_index=True)
-            combined_df.drop('순번', axis=1, inplace=True)
+                for row in range(1, ws.max_row + 1):
+                    if row in ws.row_dimensions:
+                        row_heights[row] = ws.row_dimensions[row].height
+                    else:
+                        row_heights[row] = "h_no"
+                none_value_keys = [key for key, value in row_heights.items() if value is None]
+                print("숨김 행:" + str(none_value_keys))
 
-    # 새 엑셀 파일 저장하기
-            output_file = os.path.join(combine_path, "combined.xlsx")
-            combined_df.to_excel(output_file, index=False, header=True)
-            print(f"합쳐진 파일이 {output_file}에 저장되었습니다.")
-            error_code = 0
+                excel = pd.read_excel(xlsx_file, header=0, skiprows=lambda x: x+1 in none_value_keys)
+                print(excel)
+                excel_re = excel[['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']]
+                print(excel_re)
+            # 데이터프레임 리스트에 추가합니다.
+                dfs.append(excel_re)
+
+            # 데이터프레임을 모두 결합합니다.
+                combined_df = pd.concat(dfs, ignore_index=True)
+
+            # 새 엑셀 파일 저장하기
+                output_file = os.path.join(combine_path, "combined.xlsx")
+                combined_df.to_excel(output_file, index=False, header=True)
+                print(f"합쳐진 파일이 {output_file}에 저장되었습니다.")
+                error_code = 0
         except:
             print("형식이 다른 파일이 끼어있습니다. 찾아서 삭제해주세요. 다시 시도합니다: ")
             error_code = 1
     else:
         pass
-
+        
 # 실행되는 라인
 print('본 프로그램에 등록되어 있는 id 는 다음과 같습니다:' + str(list(auth_dic.keys())))
 if set(input_id_list) - set(list(auth_dic.keys())) == set():
