@@ -304,6 +304,17 @@ def posting():
             driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
             print("글쓰기 3/3: 업로드 완료")
 
+            try:
+                alert = driver.switch_to.alert  # alert 창에 대한 참조를 가져옵니다.
+                alert_text = alert.text  # alert 창에 표시된 텍스트를 가져옵니다.
+                print(str(alert_text))
+                alert.accept()
+                time.sleep(4)
+                driver.find_element(By.XPATH, '//button[contains(text(),"등록")]').click()
+                print("글쓰기 3/3: 업로드 완료: 연속된 글쓰기로 감지되었음")
+            except:
+                pass
+
             time.sleep(1)
             try:
                 wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'cafe_default')))
