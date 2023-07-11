@@ -13,6 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from openpyxl import load_workbook
 import glob
 import os
+import re
 
 # 사용자가 환경에 따라 변경해야 할 값
 user = 'movem'
@@ -174,7 +175,7 @@ def posting():
     except:
         print("탭 관리에 문제가 있습니다")
         driver.switch_to.window(driver.window_handles[1])
-        driver.get(daum_url)
+        driver.get(naver_url)
         print("링크 접속 완료: " + naver_url)
     driver.get(naver_url)
     try:
