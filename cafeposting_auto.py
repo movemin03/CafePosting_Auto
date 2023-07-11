@@ -74,6 +74,9 @@ n_error_list, d_error_list = [], []
 global wait
 wait = WebDriverWait(driver, 5)
 
+error_posting_url = 0
+
+
 def content_html():
     driver.switch_to.window(tabs[0])
     driver.get(content_path)
@@ -83,20 +86,29 @@ def content_html():
 
 
 def login():
+    tabs = driver.window_handles
     try:
         if len(driver.window_handles) >= 2:
             driver.switch_to.window(driver.window_handles[1])
         else:
-            print("새 탭이 없습니다.")
-            driver.execute_script('window.open("", "_blank");')
+            print("탭이 부족해서 새 탭을 엽니다")
+            driver.switch_to.window(tabs[0])
+            driver.execute_script('window.open("about:blank", "_blank");')
+            tabs = driver.window_handles
+            driver.switch_to.window(tabs[1])
             time.sleep(2)
-            driver.switch_to.window(driver.window_handles[1])
     except:
+        print("탭 갯수: " + len(driver.window_handles))
         print("탭 관리에 문제가 있습니다")
-        driver.switch_to.window(driver.window_handles[1])
+        driver.switch_to.window(tabs[0])
+        driver.execute_script('window.open("about:blank", "_blank");')
+        tabs = driver.window_handles
+        driver.switch_to.window(tabs[1])
+        time.sleep(2)
 
     login_url = "https://nid.naver.com/nidlogin.login"
     driver.get(login_url)
+    print("로그인 링크 접속 완료: " + login_url)
 
     pyperclip.copy(auth)
     driver.find_element(By.ID, 'id').click()
@@ -124,19 +136,29 @@ def login():
 
 
 def login_daum():
+    tabs = driver.window_handles
     try:
         if len(driver.window_handles) >= 2:
             driver.switch_to.window(driver.window_handles[1])
         else:
-            print("새 탭이 없습니다.")
-            driver.execute_script('window.open("", "_blank");')
+            print("탭이 부족해서 새 탭을 엽니다")
+            driver.switch_to.window(tabs[0])
+            driver.execute_script('window.open("about:blank", "_blank");')
+            tabs = driver.window_handles
+            driver.switch_to.window(tabs[1])
             time.sleep(2)
-            driver.switch_to.window(driver.window_handles[1])
     except:
+        print("탭 갯수: " + len(driver.window_handles))
         print("탭 관리에 문제가 있습니다")
-        driver.switch_to.window(driver.window_handles[1])
+        driver.switch_to.window(tabs[0])
+        driver.execute_script('window.open("about:blank", "_blank");')
+        tabs = driver.window_handles
+        driver.switch_to.window(tabs[1])
+        time.sleep(2)
+
     login_url = "https://logins.daum.net/accounts/ksso.do?url=https%3A%2F%2Fwww.daum.net"
     driver.get(login_url)
+    print("로그인 링크 접속 완료: " + login_url)
 
     time.sleep(1)
     pyperclip.copy(auth)
@@ -161,50 +183,51 @@ def login_daum():
     login_btn.click()
     a = input("2차 인증 여부 및 아이디가 " + auth + "가 맞는지 확인해주시고 아무거나 입력 후 엔터")
 
+
 def posting():
+    tabs = driver.window_handles
     try:
         if len(driver.window_handles) >= 2:
             driver.switch_to.window(driver.window_handles[1])
         else:
-            print("새 탭이 없습니다.")
-            driver.execute_script('window.open("", "_blank");')
-            time.sleep(2)
-            driver.switch_to.window(driver.window_handles[1])
-        driver.get(naver_url)
-        print("링크 접속 완료: " + naver_url)
-    except:
-        print("탭 관리에 문제가 있습니다")
-        driver.switch_to.window(driver.window_handles[1])
-        driver.get(naver_url)
-        print("링크 접속 완료: " + naver_url)
-    driver.get(naver_url)
-    try:
-        if error_posting_url == 1:
+            print("탭이 부족해서 새 탭을 엽니다")
+            driver.switch_to.window(tabs[0])
+            driver.execute_script('window.open("about:blank", "_blank");')
+            tabs = driver.window_handles
             driver.switch_to.window(tabs[1])
-            driver.get(naver_url)
-        else:
-            pass
-    except NameError:
-        pass
-    print("링크 접속 완료: " + naver_url)
+            time.sleep(2)
+    except:
+        print("탭 갯수: " + len(driver.window_handles))
+        print("탭 관리에 문제가 있습니다")
+        driver.switch_to.window(tabs[0])
+        driver.execute_script('window.open("about:blank", "_blank");')
+        tabs = driver.window_handles
+        driver.switch_to.window(tabs[1])
+        time.sleep(2)
 
+    driver.get(naver_url)
+    print("링크 접속 완료: " + naver_url)
 
     error_myactivity = 0
     # 포스팅
     try:
-        driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH, '//a[contains(text(),"나의활동")]').click()
+        driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH,
+                                                                            '//a[contains(text(),"나의활동")]').click()
         wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
         driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
     except:
         try:
-            driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH, '//a[contains(text(),"나의활동")]').click()
+            driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH,
+                                                                                '//a[contains(text(),"나의활동")]').click()
             wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
             driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
         except:
-            print('오류: 가입되지 않은 카페 or 강퇴 or (낮은 확률로 활동정지)에 의한 오류입니다. 아이디가 ' + auth + '가 맞는지 확인하고 아니라면 재로그인해주세요. 이후 아무키나 눌러주십시오')
+            print(
+                '오류: 가입되지 않은 카페 or 강퇴 or (낮은 확률로 활동정지)에 의한 오류입니다. 아이디가 ' + auth + '가 맞는지 확인하고 아니라면 재로그인해주세요. 이후 아무키나 눌러주십시오')
             a = input()
             try:
-                driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH, '//a[contains(text(),"나의활동")]').click()
+                driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH,
+                                                                                    '//a[contains(text(),"나의활동")]').click()
                 wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
                 driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
             except:
@@ -232,7 +255,7 @@ def posting():
         driver.switch_to.default_content()
         wait.until(EC.presence_of_element_located((By.NAME, "cafe_main")))
         driver.switch_to.frame("cafe_main")
-#이전 포스트가 있는 경우 이전 포스트 내 글쓰기 누르고, 없는 경우정지상태 새 글 작성
+        # 이전 포스트가 있는 경우 이전 포스트 내 글쓰기 누르고, 없는 경우정지상태 새 글 작성
         global status_stop
         status_stop = 0
         if former_post == 1:
@@ -246,13 +269,16 @@ def posting():
                 status_stop = 1
         else:
             wait.until(EC.presence_of_element_located((By.XPATH, '//span[contains(@class,"BaseButton__txt")]')))
-            mcn = driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').find_element(By.XPATH, './..')
+            mcn = driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').find_element(By.XPATH,
+                                                                                                           './..')
             mcn_lnk = mcn.get_attribute('href')
             driver.get(mcn_lnk)
 
         try:
-            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea')))
-            driver.find_element(By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea').click()
+            wait.until(EC.presence_of_element_located(
+                (By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea')))
+            driver.find_element(By.XPATH,
+                                '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea').click()
 
             action = ActionChains(driver)
             action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
@@ -280,11 +306,12 @@ def posting():
 
             time.sleep(1)
             try:
+                wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'cafe_default')))
                 global posting_url_n
+                posting_url_n = "NaN"
                 posting_url_n = str(driver.current_url)
-
                 if "articles/write" in posting_url_n:
-                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요: {posting_url_n}"
+                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요:write: {posting_url_n}"
                     error_posting_url = 1
                 elif posting_url_n == "NaN":
                     posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요:NaN: + {naver_url}"
@@ -292,7 +319,7 @@ def posting():
                 else:
                     pass
             except:
-                posting_url_n = "금칙어 처리 혹은 연속된 게시물 또는 창이 꺼짐. 본래 url: " + naver_url
+                posting_url_n = "(금칙어 처리) 혹은 연속된 게시물 또는 창이 꺼짐. 본래 url: " + naver_url
                 error_posting_url = 1
             time.sleep(2)
         except:
@@ -301,29 +328,36 @@ def posting():
     else:
         pass
 
+
 def posting_daum():
+    tabs = driver.window_handles
     try:
         if len(driver.window_handles) >= 2:
-            driver.switch_to.window(driver.window_handles[0])
+            driver.switch_to.window(driver.window_handles[1])
         else:
-            print("새 탭이 없습니다.")
-            driver.execute_script('window.open("", "_blank");')
+            print("탭이 부족해서 새 탭을 엽니다")
+            driver.switch_to.window(tabs[0])
+            driver.execute_script('window.open("about:blank", "_blank");')
+            tabs = driver.window_handles
+            driver.switch_to.window(tabs[1])
             time.sleep(2)
-            driver.switch_to.window(driver.window_handles[0])
-        driver.get(daum_url)
-        print("링크 접속 완료: " + daum_url)
     except:
+        print("탭 갯수: " + len(driver.window_handles))
         print("탭 관리에 문제가 있습니다")
-        driver.switch_to.window(driver.window_handles[0])
-        driver.get(daum_url)
-        print("링크 접속 완료: " + daum_url)
+        driver.switch_to.window(tabs[0])
+        driver.execute_script('window.open("about:blank", "_blank");')
+        tabs = driver.window_handles
+        driver.switch_to.window(tabs[1])
+        time.sleep(2)
+    driver.get(daum_url)
+    print("링크 접속 완료: " + daum_url)
 
     # 포스팅
     error_myactivity = 0
     time.sleep(1)
     try:
         driver.switch_to.default_content()
-        wait.until(EC.presence_of_element_located((By. ID, "down")))
+        wait.until(EC.presence_of_element_located((By.ID, "down")))
         driver.switch_to.frame("down")
         driver.find_element(By.XPATH, '//span[contains(text(),"내 정보")]').click()
         time.sleep(2)
@@ -435,6 +469,7 @@ def posting_daum():
     else:
         pass
 
+
 def combined():
     print('파일 병합을 하시겠습니까? y/n')
     a = input()
@@ -457,9 +492,9 @@ def combined():
 
         dfs = []
         try:
-        # 각 xlsx 파일에 대해 반복합니다.
+            # 각 xlsx 파일에 대해 반복합니다.
             for xlsx_file in xlsx_list:
-            # 엑셀 파일 읽기
+                # 엑셀 파일 읽기
                 wb = load_workbook(xlsx_file)
                 ws = wb.active
                 row_heights = {}
@@ -472,16 +507,16 @@ def combined():
                 none_value_keys = [key for key, value in row_heights.items() if value is None]
                 print("숨김 행:" + str(none_value_keys))
 
-                excel = pd.read_excel(xlsx_file, header=0, skiprows=lambda x: x+1 in none_value_keys)
+                excel = pd.read_excel(xlsx_file, header=0, skiprows=lambda x: x + 1 in none_value_keys)
                 excel_re = excel[filter_list]
                 print(excel_re)
-            # 데이터프레임 리스트에 추가합니다.
+                # 데이터프레임 리스트에 추가합니다.
                 dfs.append(excel_re)
 
-            # 데이터프레임을 모두 결합합니다.
+                # 데이터프레임을 모두 결합합니다.
                 combined_df = pd.concat(dfs, ignore_index=True)
 
-            # 새 엑셀 파일 저장하기
+                # 새 엑셀 파일 저장하기
                 output_file = os.path.join(combine_path, "combined.xlsx")
                 combined_df.to_excel(output_file, index=False, header=True)
                 print(f"합쳐진 파일이 {output_file}에 저장되었습니다.")
@@ -491,7 +526,8 @@ def combined():
             error_code = 1
     else:
         pass
-        
+
+
 # 실행되는 라인
 print('본 프로그램에 등록되어 있는 id 는 다음과 같습니다:' + str(list(auth_dic.keys())))
 if set(input_id_list) - set(list(auth_dic.keys())) == set():
@@ -546,8 +582,12 @@ for x in List:
         try:
             naver_url = naver_list[i]
             posting()
-            excel_1.iloc[i, 3] = "O"
-            excel_1.iloc[i, 1] = posting_url_n
+            if error_posting_url == 1:
+                excel_1.iloc[i, 3] = "확인필요"
+                excel_1.iloc[i, 1] = posting_url_n
+            else:
+                excel_1.iloc[i, 3] = "O"
+                excel_1.iloc[i, 1] = posting_url_n
             posting_url_n = "NaN"
         except:
             if i >= len_naver:
