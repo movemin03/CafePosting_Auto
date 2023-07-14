@@ -72,15 +72,30 @@ except:
 n_error_list, d_error_list = [], []
 wait = WebDriverWait(driver, 5)
 error_posting_url = 0
+start_num = 0
+
+def switch_to_tab(tab_url):
+    global tabs
+    tabs = driver.window_handles
+    global switch_error
+    switch_error = 1
+
+    for tab in tabs:
+        driver.switch_to.window(tab)
+        current_url = driver.current_url
+
+        if tab_url in current_url:
+            switch_error = 0
+            return switch_error
+
+    a = tab_url
 
 
 def content_html():
-    driver.switch_to.window(tabs[0])
     driver.get(content_path)
     action = ActionChains(driver)
     action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
     action.key_down(Keys.CONTROL).send_keys('c').key_up(Keys.CONTROL).perform()
-    driver.switch_to.window(tabs[1])
 
 def login():
     global tabs
@@ -276,7 +291,9 @@ def posting():
             action.send_keys(title).perform()
             print("글쓰기 1/3: 제목 입력 완료")
 
+            driver.switch_to.window(tabs[0])
             content_html()
+            driver.switch_to.window(tabs[1])
             wait.until(EC.presence_of_element_located(
                 (By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
             driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[
@@ -329,13 +346,17 @@ def posting():
     else:
         pass
 
+
 def posting_daum():
     global tabs
     tabs = driver.window_handles
     try:
-        a = input("탭전환합니다")
         if len(tabs) >= 2:
-            driver.switch_to.window(tabs[1])
+            global start_num
+            if start_num == 1:
+                driver.switch_to.window(tabs[1])
+            else:
+                switch_to_tab("https://www.daum.net/")
         else:
             print("탭이 부족해서 새 탭을 엽니다")
             driver.switch_to.window(tabs[0])
@@ -426,7 +447,17 @@ def posting_daum():
         action.send_keys(title).perform()
         print("글쓰기 1/3: 제목 입력 완료")
 
+        print(switch_error)
+        if start_num == 1:
+            driver.switch_to.window(tabs[0])
+        else:
+            driver.switch_to.window(tabs[1])
         content_html()
+        if start_num == 1:
+            driver.switch_to.window(tabs[1])
+        else:
+            driver.switch_to.window(tabs[0])
+
         try:
             driver.switch_to.default_content()
             driver.switch_to.frame("down")
@@ -466,6 +497,7 @@ def posting_daum():
         time.sleep(1)
     else:
         pass
+    start_num = 1
 
 
 def combined():
