@@ -70,10 +70,7 @@ except:
     print("100 퍼센트의 확률로 제공하신 엑셀파일의 아이디 칸이 비어 있습니다. 프로그램을 재실행하시길 권장합니다")
 
 n_error_list, d_error_list = [], []
-
-global wait
 wait = WebDriverWait(driver, 5)
-
 error_posting_url = 0
 
 
@@ -83,13 +80,14 @@ def content_html():
     action = ActionChains(driver)
     action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
     action.key_down(Keys.CONTROL).send_keys('c').key_up(Keys.CONTROL).perform()
-
+    driver.switch_to.window(tabs[1])
 
 def login():
+    global tabs
     tabs = driver.window_handles
     try:
-        if len(driver.window_handles) >= 2:
-            driver.switch_to.window(driver.window_handles[1])
+        if len(tabs) >= 2:
+            driver.switch_to.window(tabs[1])
         else:
             print("탭이 부족해서 새 탭을 엽니다")
             driver.switch_to.window(tabs[0])
@@ -98,13 +96,10 @@ def login():
             driver.switch_to.window(tabs[1])
             time.sleep(2)
     except:
-        print("탭 갯수: " + len(driver.window_handles))
+        print("탭 갯수: " + str(len(tabs)))
         print("탭 관리에 문제가 있습니다")
-        driver.switch_to.window(tabs[0])
-        driver.execute_script('window.open("about:blank", "_blank");')
-        tabs = driver.window_handles
-        driver.switch_to.window(tabs[1])
-        time.sleep(2)
+        print("탭을 수동으로 열어주십시오")
+        a = input()
 
     login_url = "https://nid.naver.com/nidlogin.login"
     driver.get(login_url)
@@ -136,10 +131,11 @@ def login():
 
 
 def login_daum():
+    global tabs
     tabs = driver.window_handles
     try:
-        if len(driver.window_handles) >= 2:
-            driver.switch_to.window(driver.window_handles[1])
+        if len(tabs) >= 2:
+            driver.switch_to.window(tabs[1])
         else:
             print("탭이 부족해서 새 탭을 엽니다")
             driver.switch_to.window(tabs[0])
@@ -148,13 +144,10 @@ def login_daum():
             driver.switch_to.window(tabs[1])
             time.sleep(2)
     except:
-        print("탭 갯수: " + len(driver.window_handles))
+        print("탭 갯수: " + str(len(tabs)))
         print("탭 관리에 문제가 있습니다")
-        driver.switch_to.window(tabs[0])
-        driver.execute_script('window.open("about:blank", "_blank");')
-        tabs = driver.window_handles
-        driver.switch_to.window(tabs[1])
-        time.sleep(2)
+        print("탭을 수동으로 열어주십시오")
+        a = input()
 
     login_url = "https://logins.daum.net/accounts/ksso.do?url=https%3A%2F%2Fwww.daum.net"
     driver.get(login_url)
@@ -185,10 +178,11 @@ def login_daum():
 
 
 def posting():
+    global tabs
     tabs = driver.window_handles
     try:
-        if len(driver.window_handles) >= 2:
-            driver.switch_to.window(driver.window_handles[1])
+        if len(tabs) >= 2:
+            driver.switch_to.window(tabs[1])
         else:
             print("탭이 부족해서 새 탭을 엽니다")
             driver.switch_to.window(tabs[0])
@@ -197,13 +191,10 @@ def posting():
             driver.switch_to.window(tabs[1])
             time.sleep(2)
     except:
-        print("탭 갯수: " + len(driver.window_handles))
+        print("탭 갯수: " + str(len(tabs)))
         print("탭 관리에 문제가 있습니다")
-        driver.switch_to.window(tabs[0])
-        driver.execute_script('window.open("about:blank", "_blank");')
-        tabs = driver.window_handles
-        driver.switch_to.window(tabs[1])
-        time.sleep(2)
+        print("탭을 수동으로 열어주십시오")
+        a = input()
 
     driver.get(naver_url)
     print("링크 접속 완료: " + naver_url)
@@ -286,7 +277,6 @@ def posting():
             print("글쓰기 1/3: 제목 입력 완료")
 
             content_html()
-            driver.switch_to.window(tabs[1])
             wait.until(EC.presence_of_element_located(
                 (By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
             driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[
@@ -339,12 +329,13 @@ def posting():
     else:
         pass
 
-
 def posting_daum():
+    global tabs
     tabs = driver.window_handles
     try:
-        if len(driver.window_handles) >= 2:
-            driver.switch_to.window(driver.window_handles[1])
+        a = input("탭전환합니다")
+        if len(tabs) >= 2:
+            driver.switch_to.window(tabs[1])
         else:
             print("탭이 부족해서 새 탭을 엽니다")
             driver.switch_to.window(tabs[0])
@@ -353,13 +344,10 @@ def posting_daum():
             driver.switch_to.window(tabs[1])
             time.sleep(2)
     except:
-        print("탭 갯수: " + len(driver.window_handles))
+        print("탭 갯수: " + str(len(tabs)))
         print("탭 관리에 문제가 있습니다")
-        driver.switch_to.window(tabs[0])
-        driver.execute_script('window.open("about:blank", "_blank");')
-        tabs = driver.window_handles
-        driver.switch_to.window(tabs[1])
-        time.sleep(2)
+        print("탭을 수동으로 열어주십시오")
+        a = input()
     driver.get(daum_url)
     print("링크 접속 완료: " + daum_url)
 
@@ -439,7 +427,6 @@ def posting_daum():
         print("글쓰기 1/3: 제목 입력 완료")
 
         content_html()
-        driver.switch_to.window(tabs[1])
         try:
             driver.switch_to.default_content()
             driver.switch_to.frame("down")
