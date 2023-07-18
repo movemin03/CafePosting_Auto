@@ -163,7 +163,8 @@ def login_daum():
         print("탭 관리에 문제가 있습니다")
         print("탭을 수동으로 열어주십시오")
         a = input()
-
+        
+    tabs = driver.window_handles
     login_url = "https://logins.daum.net/accounts/ksso.do?url=https%3A%2F%2Fwww.daum.net"
     driver.get(login_url)
     print("로그인 링크 접속 완료: " + login_url)
