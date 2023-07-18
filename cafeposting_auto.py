@@ -17,7 +17,7 @@ import re
 
 # 사용자가 환경에 따라 변경해야 할 값
 user = 'movem'
-ver = str("2023-07-04")
+ver = str("2023-07-18")
 auth_dic = {'id':'pw'}
 chrome_ver = 114
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
@@ -324,7 +324,13 @@ def posting():
 
             time.sleep(1)
             try:
-                wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'cafe_default')))
+                try:
+                    driver.switch_to.default_content()
+                    wait.until(EC.presence_of_element_located((By.NAME, "cafe_main")))
+                    driver.switch_to.frame("cafe_main")
+                except:
+                    print("대기시간이 소용이 없군!")
+                    pass
                 global posting_url_n
                 posting_url_n = "NaN"
                 posting_url_n = str(driver.current_url)
@@ -332,7 +338,7 @@ def posting():
                     posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요:write: {posting_url_n}"
                     error_posting_url = 1
                 elif posting_url_n == "NaN":
-                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요:NaN: + {naver_url}"
+                    posting_url_n = f"잘못된 링크가 들어갔으므로 수동  작업 필요:NaN: + {naver_url}"
                     error_posting_url = 1
                 else:
                     pass
