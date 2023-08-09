@@ -58,6 +58,11 @@ def save_formatted_txt(folder_name, distributed, output_file):
             output = f"{name}(분배: {num}, 금일: 0개, 잔여: 0개)\n"
             f.write(output)
 
+        total_distributed = sum(map(int, distributed))
+        total_output = f"\n (총분배: {total_distributed}개, 금일: 0개, 누적: 0개, 잔여: 0개)\n"
+        f.write(total_output)
+        print("파일로 저장되었습니다")
+
 
 def version_2():
     print("version_2: 텍스트파일로 출력")
