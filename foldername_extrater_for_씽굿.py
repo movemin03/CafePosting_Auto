@@ -54,23 +54,25 @@ def separate_numbers_and_strings(folder_path):
 
 def save_formatted_txt(folder_name, distributed, output_file):
     with open(output_file, 'w', encoding='utf-8') as f:
-        for name, num in zip(folder_name, distributed):
-            output = f"{name}(분배: {num}, 금일: 0개, 잔여: 0개)\n"
-            f.write(output)
-
+        f.write("*" + arrange_title)
         total_distributed = sum(map(int, distributed))
-        total_output = f"\n (총분배: {total_distributed}개, 금일: 0개, 누적: 0개, 잔여: 0개)\n"
+        total_output = f"\n      : ★금일완료 0개, (총 {total_distributed}개 분배, 누적완료 0개, 잔여 0개)\n"
         f.write(total_output)
-        print("파일로 저장되었습니다")
 
+        for name, num in zip(folder_name, distributed):
+            output = f"        → {name}(총 {num}개 분배, 금일 0개, 잔여 0개)\n"
+            f.write(output)
 
 def version_2():
     print("version_2: 텍스트파일로 출력")
     folder_path = input("폴더 경로를 입력하세요: ").replace('"', '')
     folder_name, distributed = separate_numbers_and_strings(folder_path)
-
-    output_file = "카테고리정리_파일.txt"  # 저장할 파일 이름입니다. 필요하면 변경하세요.
-    save_formatted_txt(folder_name, distributed, output_file)
+    print("예시: 국가생물다양성전략 정책 아이디어 공모전(홍길동선임)")
+    print("제목을 입력해주십시오:")
+    global arrange_title
+    arrange_title = input()
+    save_formatted_txt(folder_name, distributed, folder_path + "\\카테고리정리_파일.txt")
+    print("파일로 저장되었습니다")
 
 if __name__ == "__main__":
     print("포스팅 완료 후 작업일지 작성을 돕기 위한 프로그램입니다. ")
