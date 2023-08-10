@@ -36,42 +36,61 @@ def version_1():
 def separate_numbers_and_strings(folder_path):
     folder_name = []
     distributed = []
+    completed = []
 
     with os.scandir(folder_path) as entries:
         for entry in entries:
             if entry.is_dir():
                 dirname = entry.name
-                num_pattern = re.compile(r'\d+')  # 숫자 패턴
-                non_num_pattern = re.compile(r'\D+')  # 숫자가 아닌 문자 패턴
+                lines = dirname.split('\n')
+                pattern1 = r"(\D+)\s(\d+)\s\((\d+)\)"
+                pattern2 = r"(\D+)\s(\d+)"
 
-                numbers = num_pattern.findall(dirname)
-                non_numbers = non_num_pattern.findall(dirname)
+                for line in lines:
+                    match1 = re.search(pattern1, line)
+                    match2 = re.search(pattern2, line)
 
-                distributed.extend(numbers)
-                folder_name.extend(non_numbers)
+                    if match1:
+                        non_numbers = match1.group(1)
+                        dis_numbers = match1.group(2)
+                        com_numbers = match1.group(3)
 
-    return folder_name, distributed
+                        folder_name.append(non_numbers)
+                        distributed.append(dis_numbers)
+                        completed.append(com_numbers)
 
-def save_formatted_txt(folder_name, distributed, output_file):
+                    if match2 and not match1:
+                        non_numbers = match2.group(1)
+                        dis_numbers = match2.group(2)
+
+                        folder_name.append(non_numbers)
+                        distributed.append(dis_numbers)
+                        completed.append(0)
+
+    return folder_name, distributed, completed
+
+def save_formatted_txt(folder_name, distributed, completed, output_file):
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write("*" + arrange_title)
         total_distributed = sum(map(int, distributed))
-        total_output = f"\n      : ★금일완료 0개, (총 {total_distributed}개 분배, 누적완료 0개, 잔여 0개)\n"
+        total_completed = sum(map(int, completed))
+        total_output = f"\n      : ★금일완료{total_completed}개, (총 {total_distributed}개 분배, 누적완료 {total_completed}개, 잔여 0개)\n"
         f.write(total_output)
 
-        for name, num in zip(folder_name, distributed):
-            output = f"        → {name}(총 {num}개 분배, 금일 0개, 잔여 0개)\n"
+        for name, dis_num, com_num in zip(folder_name, distributed, completed):
+            left = str(int(dis_num) - int(com_num))
+            output = f"        → {name}(총 {dis_num}개 분배, 금일 {com_num}개, 잔여 {left}개)\n"
             f.write(output)
 
 def version_2():
     print("version_2: 텍스트파일로 출력")
     folder_path = input("폴더 경로를 입력하세요: ").replace('"', '')
-    folder_name, distributed = separate_numbers_and_strings(folder_path)
+    folder_name, distributed, completed = separate_numbers_and_strings(folder_path)
     print("예시: 국가생물다양성전략 정책 아이디어 공모전(홍길동선임)")
     print("제목을 입력해주십시오:")
     global arrange_title
     arrange_title = input()
-    save_formatted_txt(folder_name, distributed, folder_path + "\\카테고리정리_파일.txt")
+    save_formatted_txt(folder_name, distributed, completed, folder_path + "\\카테고리정리_파일.txt")
     print("파일로 저장되었습니다")
 
 if __name__ == "__main__":
