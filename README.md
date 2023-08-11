@@ -13,3 +13,13 @@ pyperclip
 pandas
 selenium
 webdriver_manager
+
+# foldername_extracter
+
+작업일지 작성시 불필요한 작업시간을 줄이기 위하여 도입되었습니다.
+CafePosting_Auto 와는 독립적인 프로그램이지만 함께 사용하면 효율성이 극대화됩니다
+
+requirements:
+re
+os
+pandas
