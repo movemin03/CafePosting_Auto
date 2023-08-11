@@ -40,7 +40,7 @@ def separate_numbers_and_strings(folder_path):
 
 
 def version_1():
-    print("version_1: 텍스트파일로 출력")
+    print("version_1: 엑셀파일로 출력")
     folder_path = input("폴더 경로를 입력하세요: ").replace('"', '')
     folder_name, distributed, completed = separate_numbers_and_strings(folder_path)
 
