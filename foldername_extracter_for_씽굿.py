@@ -88,6 +88,8 @@ def save_formatted_txt(folder_name, distributed, completed, output_file):
             f.write(output)
 
 if __name__ == "__main__":
+    ver = "2.5.4"
+    print("작업버전: " + ver)
     print("포스팅 완료 후 작업일지 작성을 돕기 위한 프로그램입니다. ")
     print("버전을 선택하세요(숫자입력): 1. 엑셀 표로 출력, 2. 텍스트 파일로 출력 ")
     qa = input()
