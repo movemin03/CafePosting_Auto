@@ -70,8 +70,9 @@ def version_2():
     print("제목을 입력해주십시오:")
     global arrange_title
     arrange_title = input()
-    save_formatted_txt(folder_name, distributed, completed, folder_path + "\\카테고리정리_파일.txt")
-    print("파일로 저장되었습니다")
+    saved_path = folder_path + "\\카테고리정리_파일.txt"
+    save_formatted_txt(folder_name, distributed, completed, saved_path)
+    print(f"엑셀 파일이 저장되었습니다: {saved_path})
 
 def save_formatted_txt(folder_name, distributed, completed, output_file):
     with open(output_file, 'w', encoding='utf-8') as f:
