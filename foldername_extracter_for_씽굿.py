@@ -16,6 +16,20 @@ def separate_numbers_and_strings(folder_path):
                 pattern2 = r"(\D+)\s(\d+)"
 
                 for line in lines:
+                    try:
+                        korean_pattern = r"[가-힣]+"
+                        non_korean_pattern = r"[^가-힣]+"
+
+                        korean_part = "".join(re.findall(korean_pattern, line))
+                        non_korean_part = "".join(re.findall(non_korean_pattern, line))
+
+                        korean_part = korean_part.replace(' ', '') + ' '
+                        non_korean_part = non_korean_part.replace(' ', '').replace('(', ' (')
+
+                        line = str(korean_part) + str(non_korean_part)
+                    except:
+                        pass
+
                     match1 = re.search(pattern1, line)
                     match2 = re.search(pattern2, line)
 
@@ -70,9 +84,8 @@ def version_2():
     print("제목을 입력해주십시오:")
     global arrange_title
     arrange_title = input()
-    saved_path = folder_path + "\\카테고리정리_파일.txt"
-    save_formatted_txt(folder_name, distributed, completed, saved_path)
-    print(f"엑셀 파일이 저장되었습니다: {saved_path})
+    save_formatted_txt(folder_name, distributed, completed, folder_path + "\\카테고리정리_파일.txt")
+    print("파일로 저장되었습니다")
 
 def save_formatted_txt(folder_name, distributed, completed, output_file):
     with open(output_file, 'w', encoding='utf-8') as f:
@@ -88,8 +101,6 @@ def save_formatted_txt(folder_name, distributed, completed, output_file):
             f.write(output)
 
 if __name__ == "__main__":
-    ver = "2.5.4"
-    print("작업버전: " + ver)
     print("포스팅 완료 후 작업일지 작성을 돕기 위한 프로그램입니다. ")
     print("버전을 선택하세요(숫자입력): 1. 엑셀 표로 출력, 2. 텍스트 파일로 출력 ")
     qa = input()
