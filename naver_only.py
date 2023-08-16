@@ -16,13 +16,13 @@ import os
 
 # 사용자가 환경에 따라 변경해야 할 값
 user = '3-01'
-ver = str("2023-07-26")
-auth_dic = {}
-chrome_ver = 114
+ver = str("2023-08-16)
+auth_dic = {'id':'pw'}
+chrome_ver = 115
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
-post_title_path = "C:\\Users\\3-01\\Desktop\\붙여넣기.txt"
-html_path = "C:\\Users\\3-01\\Desktop\\예시.HTML"
-daum_id = []
+post_title_path = "C:\\Users\\3-01\dfdf\\붙여넣기.txt"
+html_path = "C:\\Users\\3-01\\Desktop\\dfdf.HTML"
+daum_id = ['seongyeong7540', 'juyeon4491', 'ssk4603@daum.net', 'ssk4603', 'ssk4089', 'pcwokkk']
 
 # 크롬드라이버로
 
@@ -143,6 +143,9 @@ def login():
     a = input("2차 인증 여부 및 아이디가 " + auth + "가 맞는지 확인해주시고 아무거나 입력 후 엔터")
 
 def posting():
+    global status_stop
+    status_stop = 0
+
     global tabs
     tabs = driver.window_handles
     print(str(tabs))
@@ -164,7 +167,7 @@ def posting():
 
     driver.get(naver_url)
     print("링크 접속 완료: " + naver_url)
-
+    global error_myactivity
     error_myactivity = 0
     # 포스팅
     try:
@@ -187,7 +190,6 @@ def posting():
                                                                                     '//a[contains(text(),"나의활동")]').click()
                 wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
                 driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
-                global error_myactivity
                 error_myactivity = 0
             except:
                 print('오류: 가입되지 않은 카페 or 강퇴 or (낮은 확률로 활동정지)에 의한 오류')
@@ -215,8 +217,7 @@ def posting():
         wait.until(EC.presence_of_element_located((By.NAME, "cafe_main")))
         driver.switch_to.frame("cafe_main")
         # 이전 포스트가 있는 경우 이전 포스트 내 글쓰기 누르고, 없는 경우정지상태 새 글 작성
-        global status_stop
-        status_stop = 0
+
         if former_post == 1:
             try:
                 wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/a[1]')))
@@ -296,6 +297,7 @@ def posting():
                 posting_url_n = str(driver.current_url)
                 if "articles/write" in posting_url_n:
                     posting_url_n = f"잘못된 링크가 들어갔으므로 수동 작업 필요:write: {posting_url_n}"
+                    global error_posting_url
                     error_posting_url = 1
                 else:
                     if posting_url_n == "NaN" or posting_url_n == "":
@@ -382,9 +384,14 @@ for x in List:
                         excel_1.iloc[i, 3] = "X"
                         excel_1.iloc[i, 1] = posting_url_n
                     else:
-                        excel_1.iloc[i, 3] = "O"
-                        excel_1.iloc[i, 1] = posting_url_n
+                        if status_stop == 1:
+                            excel_1.iloc[i, 3] = "X"
+                            excel_1.iloc[i, 1] = posting_url_n
+                        else:
+                            excel_1.iloc[i, 3] = "O"
+                            excel_1.iloc[i, 1] = posting_url_n
             posting_url_n = "NaN"
+            error_posting_url = 0
         except:
             if i >= len_naver:
                 pass
