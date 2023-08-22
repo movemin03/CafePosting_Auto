@@ -16,13 +16,12 @@ import os
 
 # 사용자가 환경에 따라 변경해야 할 값
 user = '3-01'
-ver = str("2023-08-16)
-auth_dic = {'id':'pw'}
-chrome_ver = 115
+ver = str("2023-08-22")
+auth_dic = {'id1 : 'pw1'}
+chrome_ver = 116
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
-post_title_path = "C:\\Users\\3-01\dfdf\\붙여넣기.txt"
-html_path = "C:\\Users\\3-01\\Desktop\\dfdf.HTML"
-daum_id = ['seongyeong7540', 'juyeon4491', 'ssk4603@daum.net', 'ssk4603', 'ssk4089', 'pcwokkk']
+daum_id = ['id1', 'id2'] #검색 예외 목록
+upper_name = "C:\\Users\\3-01\\Desktop\\0822" #최상위 폴더
 
 # 크롬드라이버로
 
@@ -55,6 +54,28 @@ for key, value in auth_dic.items():
     blank_auth_dic[new_key] = value
 auth_dic.update(blank_auth_dic)
 
+content_path = None
+title = None
+post_title_path = None
+
+for filename in os.listdir(upper_name):
+    if filename.endswith(".HTML"):
+        content_path = os.path.join(upper_name, filename)
+
+for filename in os.listdir(upper_name):
+    if filename == "붙여넣기.txt":
+        post_title_path = os.path.join(upper_name, filename)
+
+if content_path:
+    print(f"HTML 파일 경로: {content_path}")
+else:
+    print("HTML 파일을 찾을 수 없습니다. .HTML 인지 확인해주십시오. .html 처럼 소문자인 경우에도 인식하지 못합니다")
+
+if post_title_path:
+    print(f"붙여넣기.txt 파일 경로: {post_title_path}")
+else:
+    print("붙여넣기.txt 파일을 찾을 수 없습니다.")
+
 try:
     with open(post_title_path, encoding='utf-8') as file:
         title = file.readline().strip()
@@ -62,17 +83,9 @@ try:
 except:
     print("게시물의 제목을 적어주십시오:")
     title = input()
-try:
-    content_path = ""
-    content_path = html_path
-except:
-    print("복사할 html 코드 위치를 입력해주세요:")
-    content_path = input().replace('"', '')
-
-
 
 # 데이터 전처리0
-print('참고할 엑셀 파일 위치를 알려주세요:')
+print('\n참고할 엑셀 파일 위치를 알려주세요:')
 upload_path = input().replace('"', '')
 print('\n 입력하신 엑셀파일을 읽어오고 있습니다')
 excel = pd.read_excel(upload_path, names=['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
@@ -165,10 +178,16 @@ def posting():
         print("탭을 수동으로 열어주십시오")
         a = input()
 
+    if naver_url.count("/") > 3:
+        split_text = naver_url.split("/")
+        split_text = split_text[:4]  # 처음 4개의 요소만 유지
+        text = "/".join(split_text)
     driver.get(naver_url)
     print("링크 접속 완료: " + naver_url)
     global error_myactivity
     error_myactivity = 0
+    global error_myactivity_detail
+    error_myactivity_detail = ""
     # 포스팅
     try:
         driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH,
@@ -194,6 +213,19 @@ def posting():
             except:
                 print('오류: 가입되지 않은 카페 or 강퇴 or (낮은 확률로 활동정지)에 의한 오류')
                 error_myactivity = 1
+                print("어떤 오류인지 알려줄 수 있나요? 1. 미가입 2. 잘못된 경로 3. 강퇴 4. 활동정지 5. 금칙어 6. 기타")
+                error_myactivity_detail = input()
+
+                error_messages = {
+                    '1': "미가입 오류",
+                    '2': "잘못된 경로",
+                    '3': "강퇴",
+                    '4': "활동정지",
+                    '5': "금칙어 사용 오류",
+                    '6': "탭 오류",
+                    '7': "기타 오류",}
+
+                error_myactivity_detail = (error_messages[error_myactivity_detail])
 
     # frame으로 변환해야 게시글 확인이 가능하다#
 
@@ -286,6 +318,7 @@ def posting():
                     wait_fail = 0
                 except:
                     print("대기시간이 소용이 없군!")
+                    error_myactivity_detail = "금칙어 오류 혹은 (postwrite 대기 시간 초과)"
                     wait_fail = 1
                     pass
                 global posting_url_n
@@ -373,20 +406,20 @@ for x in List:
             naver_url = naver_list[i]
             posting()
             if error_posting_url == 1:
-                excel_1.iloc[i, 3] = "확인필요"
-                excel_1.iloc[i, 1] = posting_url_n
+                excel_1.iloc[i, 3] = "X"
+                excel_1.iloc[i, 1] = posting_url_n + " : " +error_myactivity_detail
             else:
                 if wait_fail == 1:
                     excel_1.iloc[i, 3] = "X"
-                    excel_1.iloc[i, 1] = posting_url_n
+                    excel_1.iloc[i, 1] = posting_url_n + " : " +error_myactivity_detail
                 else:
                     if error_myactivity == 1:
                         excel_1.iloc[i, 3] = "X"
-                        excel_1.iloc[i, 1] = posting_url_n
+                        excel_1.iloc[i, 1] = posting_url_n + " : " +error_myactivity_detail
                     else:
                         if status_stop == 1:
                             excel_1.iloc[i, 3] = "X"
-                            excel_1.iloc[i, 1] = posting_url_n
+                            excel_1.iloc[i, 1] = posting_url_n + " : " +error_myactivity_detail
                         else:
                             excel_1.iloc[i, 3] = "O"
                             excel_1.iloc[i, 1] = posting_url_n
