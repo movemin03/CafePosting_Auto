@@ -10,17 +10,16 @@ import subprocess
 from datetime import datetime
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from openpyxl import load_workbook
 import glob
 import os
 
 # 사용자가 환경에 따라 변경해야 할 값
-user = '3-01' #사용자명
-ver = str("2023-08-29")
-auth_dic = {'id' : 'pw'}
+user = 'user'
+ver = str("2023-10-04")
+auth_dic = {'id':'pw'}
 chrome_ver = 116
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
-daum_id = ['exception_id'] #검색 예외  아이디 목록
+daum_id = ['exceptio'] #검색 예외 목록
 
 
 # 크롬드라이버로
@@ -35,7 +34,7 @@ tabs = driver.window_handles
 
 # 안내
 print("\n")
-print("씽굿 프로그램입니다. 네이버 전용")
+print("자동 포스팅 프로그램입니다. 네이버 전용")
 print("https://github.com/movemin03/CafePosting_Auto")
 print("ver:" + ver)
 
@@ -44,6 +43,8 @@ print('필요한 정보를 기입해야합니다\n')
 
 print('최상위 폴더 경로를 알려주세요: ')
 upper_name = input().replace('"', '')
+
+
 
 blank_auth_dic = {}
 slash_auth_dic = {}
@@ -80,6 +81,10 @@ if post_title_path:
 else:
     print("제목.txt 파일을 찾을 수 없습니다.")
 
+for filename in os.listdir(upper_name):
+    if filename == "naver_cafe.xlsx":
+        upload_path = os.path.join(upper_name, filename)
+
 try:
     with open(post_title_path, encoding='utf-8') as file:
         title = file.readline().strip()
@@ -88,11 +93,23 @@ except:
     print("게시물의 제목을 적어주십시오:")
     title = input()
 
+if upload_path:
+    print(f"참고 엑셀 파일 경로: {upload_path}")
+    print("그대로 진행하려면 아무거나, 변경하려면 n 입력")
+    a = input()
+    if a == "n":
+        print('참고할 엑셀 파일 위치를 알려주세요:')
+        upload_path = input().replace('"', '')
+    else:
+        pass
+else:
+    print('참고할 엑셀 파일 위치를 알려주세요:')
+    upload_path = input().replace('"', '')
+
 # 데이터 전처리0
-print('\n참고할 엑셀 파일 위치를 알려주세요:')
-upload_path = input().replace('"', '')
 print('\n 입력하신 엑셀파일을 읽어오고 있습니다')
 excel = pd.read_excel(upload_path, names=['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
+pd.set_option('mode.chained_assignment', None)
 input_id_list = list(excel['사용아이디'].drop_duplicates())
 try:
     input_id_list = [item.strip() for item in input_id_list]
@@ -197,32 +214,39 @@ def posting():
     # 포스팅
     try:
         driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH,
-                                                                            '//a[contains(text(),"나의활동")]').click()
-        wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
-        driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
+                                                                            '//button[contains(text(),"나의활동")]').click()
+        wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 게시글")]')))
+        driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 게시글")]').click()
     except:
+#네이버 카페 업데이트로 하위 경로 탐색기능이 작동되지 않음
         try:
             driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH,
                                                                                 '//a[contains(text(),"나의활동")]').click()
             wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
             driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
         except:
-            print(
-                '오류: 가입되지 않은 카페 or 강퇴 or (낮은 확률로 활동정지)에 의한 오류입니다. 아이디가 ' + auth + '가 맞는지 확인하고 아니라면 재로그인해주세요. 이후 아무키나 눌러주십시오')
-            a = input()
             try:
                 driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH,
                                                                                     '//a[contains(text(),"나의활동")]').click()
                 wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]')))
                 driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 글 보기")]').click()
-                error_myactivity = 0
             except:
-                print('오류: 가입되지 않은 카페 or 강퇴 or (낮은 확률로 활동정지)에 의한 오류')
-                error_myactivity = 1
-                print("어떤 오류인지 알려줄 수 있나요? 1. 미가입 2. 잘못된 경로 3. 강퇴 4. 활동정지 5. 금칙어 6. 기타")
-                error_myactivity_detail = input()
+                print(
+                    '오류: 가입되지 않은 카페 or 강퇴 or (낮은 확률로 활동정지)에 의한 오류입니다. 아이디가 ' + auth + '가 맞는지 확인하고 아니라면 재로그인해주세요. 이후 아무키나 눌러주십시오')
+                a = input()
+                try:
+                    driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH,
+                                                                                        '//button[contains(text(),"나의활동")]').click()
+                    wait.until(EC.presence_of_element_located((By.XPATH, '//a[contains(text(),"내가 쓴 게시글")]')))
+                    driver.find_element(By.XPATH, '//a[contains(text(),"내가 쓴 게시글")]').click()
+                    error_myactivity = 0
+                except:
+                    print('오류: 가입되지 않은 카페 or 강퇴 or (낮은 확률로 활동정지)에 의한 오류')
+                    error_myactivity = 1
+                    print("어떤 오류인지 알려줄 수 있나요? 1. 미가입 2. 잘못된 경로 3. 강퇴 4. 활동정지 5. 금칙어 6. 기타")
+                    error_myactivity_detail = input()
 
-                error_messages = {
+                    error_messages = {
                     '1': "미가입 오류",
                     '2': "잘못된 경로",
                     '3': "강퇴",
@@ -231,7 +255,7 @@ def posting():
                     '6': "탭 오류",
                     '7': "기타 오류",}
 
-                error_myactivity_detail = (error_messages[error_myactivity_detail])
+                    error_myactivity_detail = (error_messages[error_myactivity_detail])
 
     # frame으로 변환해야 게시글 확인이 가능하다#
 
@@ -295,7 +319,22 @@ def posting():
             print("글쓰기 2/3: html 코드 입력 완료")
 
             if former_post == 0:
-                print('카테고리를 수동 변경해야 합니다. 카테고리를 설정해주세요. 수정 후 아무키나 눌러주세요')
+                try:
+                    try:
+                        wait.until(EC.presence_of_element_located(
+                            (By.XPATH, '//button[contains(text(),"게시판을 선택해 주세요")]')))
+                        driver.find_element(By.XPATH, '//button[contains(text(),"게시판을 선택해 주세요")]').click()
+                        elements = driver.find_element(By.CLASS_NAME, 'option_list')
+                    except:
+                        pass
+                    try:
+                        print(elements.text)
+                        print("[자유] 키워드가 포함된 카테고리는 위와 같습니다")
+                    except:
+                        print("[자유] 키워드가 포함된 카테고리가 없는 것으로 보입니다")
+                    print('카테고리를 수동 변경해야 합니다. 카테고리를 설정해주세요. 수정 후 아무키나 눌러주세요')
+                except:
+                    pass
                 a = input()
             else:
                 time.sleep(3)
@@ -324,7 +363,8 @@ def posting():
                     wait_fail = 0
                 except:
                     print("대기시간이 소용이 없군!")
-                    error_myactivity_detail = "금칙어 오류 혹은 (postwrite 대기 시간 초과)"
+                    print('포스팅 완료 과정에서 오류가 있었습니다. 대부분 금칙어 오류. 종종 글쓰기 활동 중지 혹은 연속된 게시물인 경우 오류가 발생할 수 있습니다')
+                    error_myactivity_detail = "대부분 금칙어 오류. 종종 글쓰기 활동 중지 혹은 연속된 게시물인 경우 오류가 발생할 수 있습니다"
                     wait_fail = 1
                     pass
                 global posting_url_n
@@ -347,7 +387,7 @@ def posting():
             except:
                 posting_url_n = "(금칙어 처리) 혹은 연속된 게시물 또는 창이 꺼짐. 본래 url: " + naver_url
                 error_posting_url = 1
-            print("posting_url: " + posting_url_n)
+            print("포스팅된 게시물 링크 posting_url: " + posting_url_n)
             time.sleep(2)
         except:
             posting_url_n = "높은 확률로 정지 상태(간혹 등급부족 오류). 본래 url: " + naver_url
@@ -452,8 +492,4 @@ for x in List:
         os.makedirs(result_dir)
     excel_1.to_excel(result_dir + "\\" + auth + "_" + execute_time + '_작업완료naver.xlsx')
 
-if len(n_error_list) > 0:
-    print("다음은 권한이 없거나 오류가 있어서 업로드 하지 못한 링크들 입니다. 네이버 카페:" + str(n_error_list))
-else:
-    pass
 print('작업완료된 내역을 엑셀 파일로 저장하였습니다.')
