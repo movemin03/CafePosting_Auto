@@ -34,7 +34,7 @@ tabs = driver.window_handles
 
 # 안내
 print("\n")
-print("자동 포스팅 프로그램입니다. 네이버 전용")
+print("씽굿 프로그램입니다. 네이버 전용")
 print("https://github.com/movemin03/CafePosting_Auto")
 print("ver:" + ver)
 
@@ -43,9 +43,6 @@ print('필요한 정보를 기입해야합니다\n')
 
 print('최상위 폴더 경로를 알려주세요: ')
 upper_name = input().replace('"', '')
-
-
-
 blank_auth_dic = {}
 slash_auth_dic = {}
 # 슬레쉬 제거
@@ -84,6 +81,9 @@ else:
 for filename in os.listdir(upper_name):
     if filename == "naver_cafe.xlsx":
         upload_path = os.path.join(upper_name, filename)
+    else:
+        print("업로드할 엑셀 파일 위치를 지정해주세요")
+        upload_path = input().replace('"', '')
 
 try:
     with open(post_title_path, encoding='utf-8') as file:
