@@ -14,9 +14,9 @@ import os
 import re
 
 # 사용자가 환경에 따라 변경해야 할 값
-user = '3-01'
-ver = str("2023-08-22")
-auth_dic = {'id' : 'pw'}
+user = 'user'
+ver = str("2023-10-04")
+auth_dic = {'id':''pw'}
 chrome_ver = 116
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
 
@@ -31,10 +31,10 @@ tabs = driver.window_handles
 
 # 안내
 print("\n")
-print("씽굿 프로그램입니다. 다음 전용")
+print("자동 포스팅 프로그램입니다. 다음 전용")
 print("https://github.com/movemin03/CafePosting_Auto")
 print("ver:" + ver)
-print("이 프로그램은 개발이 중단된 프로그램으로 네이버 버전에 비해 개선이 덜 이루어졌습니다. 더불어, 더이상의 업데이트는 없습니다")
+print("이 프로그램은 개발이 중단된 프로그램으로 네이버 버전에 비해 개선이 덜 이루어졌습니다.")
 
 # 정보 입력
 print('필요한 정보를 기입해야합니다\n')
@@ -67,6 +67,10 @@ for filename in os.listdir(upper_name):
     if filename == "제목.txt":
         post_title_path = os.path.join(upper_name, filename)
 
+for filename in os.listdir(upper_name):
+    if filename == "daum_cafe.xlsx":
+        upload_path = os.path.join(upper_name, filename)
+
 if content_path:
     print(f"HTML 파일 경로: {content_path}")
 else:
@@ -84,10 +88,20 @@ try:
 except:
     print("게시물의 제목을 적어주십시오:")
     title = input()
+if upload_path:
+    print(f"참고 엑셀 파일 경로: {upload_path}")
+    print("그대로 진행하려면 아무거나, 변경하려면 n 입력")
+    a = input()
+    if a == "n":
+        print('참고할 엑셀 파일 위치를 알려주세요:')
+        upload_path = input().replace('"', '')
+    else:
+        pass
+else:
+    print('참고할 엑셀 파일 위치를 알려주세요:')
+    upload_path = input().replace('"', '')
 
 # 데이터 전처리0
-print('참고할 엑셀 파일 위치를 알려주세요:')
-upload_path = input().replace('"', '')
 print('\n 입력하신 엑셀파일을 읽어오고 있습니다')
 excel = pd.read_excel(upload_path, names=['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'])
 input_id_list = list(excel['사용아이디'].drop_duplicates())
@@ -139,8 +153,14 @@ def login_daum():
 
 def posting_daum():
     driver.switch_to.window(tabs[1])
-    driver.get(daum_url)
-    print("링크 접속 완료: " + daum_url)
+    if daum_url.count("/") > 3:
+        split_text = daum_url.split("/")
+        split_text = split_text[:4]  # 처음 4개의 요소만 유지
+        d_url = "/".join(split_text)
+    else:
+        d_url = daum_url
+    driver.get(d_url)
+    print("링크 접속 완료: " + d_url)
 
     # 포스팅
     error_myactivity = 0
@@ -317,7 +337,7 @@ for x in List:
                 pass
             login_daum()
         except:
-            print('오류: 이미 로그인이 진행 or 자동로그인 기능 겹침 or id/pw 오류. 수동 진행 후 아무 키 입력')
+            print('수동 로그인해주십시오')
             a = input()
     else:
         print('업로드할 daum 링크가 없습니다')
