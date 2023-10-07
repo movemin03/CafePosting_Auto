@@ -84,9 +84,14 @@ def combined():
 
             print(f"합쳐진 파일이 {output_file}에 저장되었습니다.")
         except Exception as e:
-            print("오류 발생:", str(e))
-            print("형식이 다른 파일이 끼어있습니다. 삭제 혹은 수정 후 다시 시도바랍니다")
+            if str(e) == "int() argument must be a string, a bytes-like object or a real number, not 'NoneType'":
+                print("파일명(카테고리명)항목에 띄어쓰기가 누락되어 있습니다. 카테고리명과 숫자 사이 띄어쓰기를 추가해주십시오 ex)기본커뮤니티 20")
+            else:
+                print("오류 발생:", str(e))
+                print("형식이 다른 파일이 끼어있습니다. 삭제 혹은 수정 후 다시 시도바랍니다")
     else:
         pass
 
 combined()
+a = input()
+
