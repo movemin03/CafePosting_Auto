@@ -65,33 +65,44 @@ def combined():
             # 1. 열 변경
                 combined_df = combined_df.reindex(columns=['사이트명','사이트주소', '업로드여부','사용아이디','파일명'])
             # 2. 텍스트 나누고 카테고리명과 순번 오름차순 정렬
-                combined_df[['카테고리명', '순번']] = combined_df['파일명'].str.split(' ', expand=True)
-                del combined_df['파일명']
-                combined_df['순번'] = combined_df['순번'].astype(int)
-                combined_df = combined_df.sort_values(by=['카테고리명', '순번'], ascending=[True, True])
+                try:
+                    combined_df[['카테고리명', '순번']] = combined_df['파일명'].str.split(' ', expand=True)
+                    del combined_df['파일명']
+                    combined_df['순번'] = combined_df['순번'].astype(int)
+                    combined_df = combined_df.sort_values(by=['카테고리명', '순번'], ascending=[True, True])
+                    category_error = False
+                except Exception as e:
+                    if str(e) == "int() argument must be a string, a bytes-like object or a real number, not 'NoneType'":
+                        category_error = True
+                    else:
+                        print("오류 발생:", str(e))
+                        category_error = True
 
             # 새 엑셀 파일 저장하기
                 now = datetime.now()
                 formatted_datetime = now.strftime("_%y%m%d_%H%M")
                 output_file = os.path.join(combine_path, "combined" + formatted_datetime + ".xlsx")
-                categories = combined_df['카테고리명'].unique()
-                with pd.ExcelWriter(output_file) as writer:
-                    for category in categories:
-                        filtered_df = combined_df[combined_df['카테고리명'] == category]
-                        sheet_name = category if category else "Uncategorized"
-                        filtered_df.to_excel(writer, sheet_name=sheet_name, index=False)
 
+                if category_error == False:
+                    categories = combined_df['카테고리명'].unique()
+                    with pd.ExcelWriter(output_file) as writer:
+                        for category in categories:
+                            filtered_df = combined_df[combined_df['카테고리명'] == category]
+                            sheet_name = category if category else "Uncategorized"
+                            filtered_df.to_excel(writer, sheet_name=sheet_name, index=False)
+                else:
+                    pass
+            if category_error == True:
+                print("파일명(카테고리명)항목에 띄어쓰기가 누락되어 있습니다. 카테고리명과 숫자 사이 띄어쓰기를 추가해주십시오 ex)기본커뮤니티 20")
+                print("일부 파일명 항목에 띄어쓰기가 제대로 되지 않아서, 카테고리별 시트 분리 기능과 정렬 기능을 적용하지 않습니다")
+                combined_df.to_excel(output_file, index=False, header=True)
 
             print(f"합쳐진 파일이 {output_file}에 저장되었습니다.")
         except Exception as e:
-            if str(e) == "int() argument must be a string, a bytes-like object or a real number, not 'NoneType'":
-                print("파일명(카테고리명)항목에 띄어쓰기가 누락되어 있습니다. 카테고리명과 숫자 사이 띄어쓰기를 추가해주십시오 ex)기본커뮤니티 20")
-            else:
-                print("오류 발생:", str(e))
-                print("형식이 다른 파일이 끼어있습니다. 삭제 혹은 수정 후 다시 시도바랍니다")
+            print("오류 발생:", str(e))
+            print("형식이 다른 파일이 끼어있습니다. 삭제 혹은 수정 후 다시 시도바랍니다")
     else:
         pass
 
 combined()
 a = input()
-
