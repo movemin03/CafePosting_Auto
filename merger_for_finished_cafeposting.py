@@ -7,6 +7,22 @@ from datetime import datetime
 user = os.path.expanduser('~')
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
 
+def modify_category(category):
+    indices = []
+    num_list = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
+    for i, char in enumerate(category):
+        if char in num_list:
+            indices.append((char, i))
+
+    indices.sort(key=lambda x: x[1])  # 인덱스 위치를 기준으로 정렬
+
+    number = ''.join([char for char, _ in indices])  # 정렬된 숫자 값을 합쳐서 number 변수에 할당
+    first_num_index = indices[0][1]  # 숫자 시작 index
+    korean = category[:first_num_index].replace(" ", "")  # 한글 부분
+    category_modified = korean + " " + category[first_num_index:].replace(" ", "")
+
+    return category_modified
+
 def combined():
     print("결과 파일 병합 프로그램입니다")
     a = "y"
@@ -61,6 +77,9 @@ def combined():
             # 데이터프레임을 모두 결합합니다.
                 combined_df = pd.concat(dfs, ignore_index=True)
             # 결합된 데이터프레임을 수정합니다
+            # 결합된 데이터의 파일명에 공백이 제대로 적용되어 있는지 확인하고 변경합니다
+                combined_df['파일명'] = combined_df['파일명'].apply(lambda x: modify_category(x) if any(char.isdigit() for char in x) else x)
+
             # 사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명'
             # 1. 열 변경
                 combined_df = combined_df.reindex(columns=['사이트명','사이트주소', '업로드여부','사용아이디','파일명'])
