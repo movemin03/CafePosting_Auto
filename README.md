@@ -24,13 +24,25 @@ pandas
 selenium
 webdriver_manager
 
+
+# distributer_for_씽굿.py
+
+CafePosting_Auto 실행 전 네이버, 다음, 기타 카페를 분류해주는 프로그램입니다.
+
+requirements:
+pandas
+os
+
 # merger_for_finished_cafeposting
 
 CafePosting_Auto 실행 완료 후 결과 엑셀 파일들을 하나로 병합시켜주는 프로그램입니다.
 
 requirements:
+glob
+os
 openpyxl
 pandas
+datetime
 
 
 # foldername_extracter
@@ -38,8 +50,6 @@ pandas
 포스팅 완료 후 작업일지 작성시 불필요한 작업시간을 줄이기 위하여 도입되었습니다.
 
 requirements:
-re
 os
+re
 pandas
-
-
