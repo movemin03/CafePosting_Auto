@@ -14,7 +14,7 @@ import glob
 import os
 
 # 사용자가 환경에 따라 변경해야 할 값
-user = 'user'
+upper_path = "" 
 ver = str("2023-10-04")
 auth_dic = {'id':'pw'}
 chrome_ver = 116
@@ -23,7 +23,7 @@ daum_id = ['exceptio'] #검색 예외 목록
 
 
 # 크롬드라이버로
-
+user = os.getlogin()
 subprocess.Popen(
     r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\' + user + r'\\AppData\\Local\\Google\\Chrome\\User Data"')
 option = Options()
@@ -40,11 +40,40 @@ print("ver:" + ver)
 
 # 정보 입력
 print('필요한 정보를 기입해야합니다\n')
+now = time.localtime()
+today_month = str(now.tm_mon).zfill(2)
+today_day = str(now.tm_mday).zfill(2)
+matching_folders = []
 
-print('최상위 폴더 경로를 알려주세요: ')
-upper_name = input().replace('"', '')
+file_path = os.path.join(upper_path, today_month + "월")
 
-
+if os.path.exists(file_path):
+    for folder_name in os.listdir(file_path):
+        if today_month + today_day in folder_name:
+            folder_path = os.path.join(file_path, folder_name)
+            matching_folders.append(folder_path)
+    if len(matching_folders) >= 2:
+        print("오늘 날짜 기준 2개 이상입니다.")
+        for folder_path in matching_folders:
+            print(folder_path)
+            for file_name in os.listdir(folder_path):
+                file_link = os.path.join(folder_path, file_name)
+                if os.path.islink(file_link):
+                    print(file_link)
+        print("참고해서 최상위 폴더 경로를 넣어주세요")
+        upper_name = input().replace('"', '')
+    else:
+        for upper_name in matching_folders:
+            print("폴더 경로:", upper_name)
+            print("가 발견되었습니다. 최상위 폴더를 변경하려면 n, 아니라면 아무거나 입력")
+            a = input()
+            if a == "n":
+                upper_name = input().replace('"', '')
+            else:
+                pass
+else:
+    print("최상위 폴더 경로를 지정해주세요")
+    upper_name = input().replace('"', '')
 
 blank_auth_dic = {}
 slash_auth_dic = {}
@@ -86,8 +115,8 @@ for filename in os.listdir(upper_name):
         upload_path = os.path.join(upper_name, filename)
 
 try:
-    print(f"참고 엑셀 파일 경로: {upload_path}")
-    print("그대로 진행하려면 아무거나, 변경하려면 n 입력")
+    print(f"\n참고 엑셀 파일 경로: {upload_path}")
+    print("참고할 엑셀 파일 경로 변경을 원하시면 n 을 아니면 아무거나 입력")
     a = input()
     if a == "n":
         print('참고할 엑셀 파일 위치를 알려주세요:')
@@ -106,19 +135,6 @@ try:
 except:
     print("게시물의 제목을 적어주십시오:")
     title = input()
-
-if upload_path:
-    print(f"참고 엑셀 파일 경로: {upload_path}")
-    print("그대로 진행하려면 아무거나, 변경하려면 n 입력")
-    a = input()
-    if a == "n":
-        print('참고할 엑셀 파일 위치를 알려주세요:')
-        upload_path = input().replace('"', '')
-    else:
-        pass
-else:
-    print('참고할 엑셀 파일 위치를 알려주세요:')
-    upload_path = input().replace('"', '')
 
 # 데이터 전처리0
 print('\n 입력하신 엑셀파일을 읽어오고 있습니다')
