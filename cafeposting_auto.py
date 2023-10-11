@@ -43,6 +43,9 @@ print('필요한 정보를 기입해야합니다\n')
 
 print('최상위 폴더 경로를 알려주세요: ')
 upper_name = input().replace('"', '')
+
+
+
 blank_auth_dic = {}
 slash_auth_dic = {}
 # 슬레쉬 제거
@@ -81,9 +84,20 @@ else:
 for filename in os.listdir(upper_name):
     if filename == "naver_cafe.xlsx":
         upload_path = os.path.join(upper_name, filename)
-    else:
-        print("업로드할 엑셀 파일 위치를 지정해주세요")
+
+try:
+    print(f"참고 엑셀 파일 경로: {upload_path}")
+    print("그대로 진행하려면 아무거나, 변경하려면 n 입력")
+    a = input()
+    if a == "n":
+        print('참고할 엑셀 파일 위치를 알려주세요:')
         upload_path = input().replace('"', '')
+    else:
+        pass
+except:
+    print('참고할 엑셀 파일 위치를 알려주세요:')
+    upload_path = input().replace('"', '')
+    print(f"참고 엑셀 파일 경로: {upload_path}")
 
 try:
     with open(post_title_path, encoding='utf-8') as file:
@@ -329,7 +343,7 @@ def posting():
                         pass
                     try:
                         print(elements.text)
-                        print("[자유] 키워드가 포함된 카테고리는 위와 같습니다")
+                        print("카테고리는 위와 같습니다")
                     except:
                         print("[자유] 키워드가 포함된 카테고리가 없는 것으로 보입니다")
                     print('카테고리를 수동 변경해야 합니다. 카테고리를 설정해주세요. 수정 후 아무키나 눌러주세요')
