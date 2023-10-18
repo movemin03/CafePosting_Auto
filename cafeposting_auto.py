@@ -15,7 +15,7 @@ import os
 
 # 사용자가 환경에 따라 변경해야 할 값
 upper_path = "" 
-ver = str("2023-10-04")
+ver = str("2023-10-18")
 auth_dic = {'id':'pw'}
 chrome_ver = 116
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
@@ -91,10 +91,22 @@ auth_dic.update(blank_auth_dic)
 content_path = None
 title = None
 post_title_path = None
+try:
+    for filename in os.listdir(upper_name):
+        if filename.endswith(".HTML"):
+            content_path = os.path.join(upper_name, filename)
+            global html_success
+            html_success = 1
+except:
+    print("오늘 날짜가 포함된 폴더가 없거나 찾을 수 없어서 자동인식이 되지 않았습니다")
+    print("최상위 폴더 경로를 지정해주세요")
+    upper_name = input().replace('"', '')
+    html_success = 0
 
-for filename in os.listdir(upper_name):
-    if filename.endswith(".HTML"):
-        content_path = os.path.join(upper_name, filename)
+if not html_success == 1:
+    for filename in os.listdir(upper_name):
+        if filename.endswith(".HTML"):
+            content_path = os.path.join(upper_name, filename)
 
 for filename in os.listdir(upper_name):
     if filename == "제목.txt":
@@ -104,11 +116,15 @@ if content_path:
     print(f"HTML 파일 경로: {content_path}")
 else:
     print("HTML 파일을 찾을 수 없습니다. .HTML 인지 확인해주십시오. .html 처럼 소문자인 경우에도 인식하지 못합니다")
+    print("아래에 수동으로 입력해주세요:")
+    content_path = input().replace('"', '')
 
 if post_title_path:
     print(f"제목.txt 파일 경로: {post_title_path}")
 else:
     print("제목.txt 파일을 찾을 수 없습니다.")
+    print("아래에 수동으로 입력해주세요:")
+    post_title_path = input().replace('"', '')
 
 for filename in os.listdir(upper_name):
     if filename == "naver_cafe.xlsx":
