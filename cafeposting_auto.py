@@ -10,16 +10,18 @@ import subprocess
 from datetime import datetime
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import glob
 import os
+import autoit
+from bs4 import BeautifulSoup
 
 # 사용자가 환경에 따라 변경해야 할 값
-upper_path = "" 
-ver = str("2023-10-18")
+upper_path = ""
+ver = str("2023-10-28 dev ")
 auth_dic = {'id':'pw'}
 chrome_ver = 116
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
-daum_id = ['exceptio'] #검색 예외 목록
+daum_id = ['exception'] # 잘 쓰지 않는 기능. 보통 다음 아이디를 여기에 넣어둠. 로그인 과정 건너뒴
+except_site = ["exception"] # 사진 별도로 올릴 항목은 여기에 추가. 사진을 전부 별도로 올리려면 naver 입력
 
 
 # 크롬드라이버로
@@ -91,9 +93,11 @@ auth_dic.update(blank_auth_dic)
 content_path = None
 title = None
 post_title_path = None
+img_path = None
+
 try:
     for filename in os.listdir(upper_name):
-        if filename.endswith(".HTML"):
+        if filename.endswith(".HTML") and filename != "mod.HTML":
             content_path = os.path.join(upper_name, filename)
             global html_success
             html_success = 1
@@ -112,12 +116,19 @@ for filename in os.listdir(upper_name):
     if filename == "제목.txt":
         post_title_path = os.path.join(upper_name, filename)
 
+for filename2 in os.listdir(upper_name):
+    if filename2 == "display.jpg" or filename2 == "display.jpeg" or filename2 == "display.png":
+        img_path = os.path.join(upper_name, filename2)
+        break
+
 if content_path:
     print(f"HTML 파일 경로: {content_path}")
+
 else:
     print("HTML 파일을 찾을 수 없습니다. .HTML 인지 확인해주십시오. .html 처럼 소문자인 경우에도 인식하지 못합니다")
     print("아래에 수동으로 입력해주세요:")
     content_path = input().replace('"', '')
+
 
 if post_title_path:
     print(f"제목.txt 파일 경로: {post_title_path}")
@@ -125,6 +136,14 @@ else:
     print("제목.txt 파일을 찾을 수 없습니다.")
     print("아래에 수동으로 입력해주세요:")
     post_title_path = input().replace('"', '')
+
+if img_path:
+    print(f"이미지 파일 경로: {img_path}")
+else:
+    print("업로드 할 이미지 파일을 찾을 수 없습니다. jpg png jpeg 파일을 적용 가능합니다")
+    print("아래에 수동으로 입력해주세요:")
+    img_path = input().replace('"', '')
+
 
 for filename in os.listdir(upper_name):
     if filename == "naver_cafe.xlsx":
@@ -168,12 +187,66 @@ wait = WebDriverWait(driver, 5)
 error_posting_url = 0
 start_num = 0
 
+def remove_img_tags(upper_name, content_path_mod):
+    with open(upper_name, 'r', encoding='utf-8') as file:
+        html_content = file.read()
+
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # <img> 태그 제거
+    for img_tag in soup.find_all('img'):
+        img_tag.decompose()
+
+    modified_html = str(soup)
+
+    with open(content_path_mod, 'w', encoding='utf-8') as file:
+        file.write(modified_html)
+
+except_site_num = 0
+def check_url(n_url, except_site):
+    for site in except_site:
+        if site in n_url:
+            print("이 사이트는 html 붙여넣기 외에 별도로 사진을 업로드 하도록 지정하셨습니다")
+            wait.until(EC.presence_of_element_located((By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
+            driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[0].click()
+            action = ActionChains(driver)
+            action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
+            action.send_keys(Keys.BACKSPACE)
+            # 사진 업로드 선택
+            time.sleep(1)
+            driver.find_element(By.XPATH, '//button[contains(@class,"se-image-toolbar-button se-document-toolbar-basic-button se-text-icon-toolbar-button")]').click()
+            time.sleep(2)
+            handle = "[CLASS:#32770; TITLE:열기]"
+            img_path.replace(";", ":")
+            print("img_path를 붙여넣기 합니다: " + img_path)
+            autoit.control_send(handle, "Edit1", img_path)
+            time.sleep(1)
+            autoit.control_click(handle, "Button1")
+            time.sleep(1)
+            print("사진이 업로드 되었습니다")
+            global content_path_mod
+            content_path_mod = upper_name + "\\mod.HTML"
+            if "mod.HTML" in os.listdir(upper_name):
+                print("mod.HTML 파일이 이미 있습니다")
+            else:
+                print("기존 html의 태그를 일부 수정하여 mod.HTML 파일을 만들고 있습니다")
+                print("시간이 조금 소요될 수 있습니다")
+                print(content_path)
+                remove_img_tags(content_path, content_path_mod)
+                print("파일 생성이 완료되었습니다")
+            global except_site_num
+            except_site_num = 1
+    pass
 def content_html():
-    driver.get(content_path)
+    global except_site_num
+    if except_site_num == 1:
+        driver.get(content_path_mod)
+        except_site_num = 0
+    else:
+        driver.get(content_path)
     action = ActionChains(driver)
     action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
     action.key_down(Keys.CONTROL).send_keys('c').key_up(Keys.CONTROL).perform()
-
 def login():
     global tabs
     tabs = driver.window_handles
@@ -351,7 +424,11 @@ def posting():
             action = ActionChains(driver)
             action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
             action.send_keys(title).perform()
-            print("글쓰기 1/3: 제목 입력 완료")
+            print("글쓰기 1/4: 제목 입력 완료")
+
+            #붙여넣기 이외에 사진을 별도로 업로드해야하는 경우인지 아닌지 판단하고, 추가 작업을 진행한다
+            check_url(n_url, except_site)
+            print("글쓰기 2/3: 사진 별도 업로드 필요 여부 확인 완료")
 
             driver.switch_to.window(tabs[0])
             content_html()
@@ -360,9 +437,8 @@ def posting():
                 (By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')))
             driver.find_elements(By.XPATH, '//p[contains(@class,"se-text-paragraph se-text-paragraph-align-left")]')[
                 0].click()
-            action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
             action.key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
-            print("글쓰기 2/3: html 코드 입력 완료")
+            print("글쓰기 3/4: html 코드 입력 완료")
 
             if former_post == 0:
                 try:
@@ -386,7 +462,7 @@ def posting():
                 time.sleep(3)
 
             driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
-            print("글쓰기 3/3: 업로드 완료")
+            print("글쓰기 4/4: 업로드 완료")
 
             try:
                 alert = driver.switch_to.alert  # alert 창에 대한 참조를 가져옵니다.
@@ -436,8 +512,9 @@ def posting():
             print("포스팅된 게시물 링크 posting_url: " + posting_url_n)
             time.sleep(2)
         except:
-            posting_url_n = "높은 확률로 정지 상태(간혹 등급부족 오류). 본래 url: " + naver_url
+            posting_url_n = "높은 확률로 정지 상태(간혹 등급부족 오류)혹은 프로그램 멈춤. 본래 url: " + naver_url
             print("높은 확률로 정지 상태입니다. 둥급 부족인 상태에도 해당 문구가 뜰 수 있습니다")
+            print("프로그램 멈춤 시에도 해당 오류가 발생합니다")
             status_stop = 1
     else:
         posting_url_n = "오류: 가입되지 않은 카페 or 강퇴 or (낮은 확률로 활동정지)에 의한. 본래 url: " + naver_url
