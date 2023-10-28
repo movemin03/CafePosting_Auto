@@ -22,7 +22,9 @@ openpyxl
 pyperclip
 pandas
 selenium
-webdriver_manager
+bs4
+autoit
+
 
 
 # distributer_for_씽굿.py
