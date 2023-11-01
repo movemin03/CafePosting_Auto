@@ -24,6 +24,8 @@ pandas
 selenium
 bs4
 autoit
+pyautoit
+
 
 
 
