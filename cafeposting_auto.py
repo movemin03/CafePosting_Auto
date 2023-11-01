@@ -140,9 +140,51 @@ else:
 if img_path:
     print(f"이미지 파일 경로: {img_path}")
 else:
-    print("업로드 할 이미지 파일을 찾을 수 없습니다. jpg png jpeg 파일을 적용 가능합니다")
-    print("아래에 수동으로 입력해주세요:")
-    img_path = input().replace('"', '')
+    print("업로드 할 이미지 파일을 찾을 수 없습니다")
+
+    try:
+        print("이미지를 자동 내려받기를 시도합니다")
+        with open(content_path, 'r', encoding='utf-8') as file:
+            # 파일 내용 읽기
+            file_content = file.read()
+
+            # img 태그 찾기
+            img_tags = file_content.split('<img')
+
+            # 이미지 다운로드 및 저장
+            for img_tag in img_tags:
+                if 'src="' in img_tag:
+                    # 이미지 링크 추출
+                    img_src_start = img_tag.index('src="') + len('src="')
+                    img_src_end = img_tag.index('"', img_src_start)
+                    img_src = img_tag[img_src_start:img_src_end]
+
+                    # 이미지 링크를 절대 경로로 변환
+                    img_url = urljoin(content_path, img_src)
+                    img_url = img_url.replace("amp;", "")
+
+                    # 이미지 다운로드
+                    response = requests.get(img_url)
+
+                    # 이미지 파일명 추출
+                    img_filename = os.path.basename(img_url)
+
+                    # 이미지 저장 파일명
+                    save_filename = 'display.jpg'
+                    save_path = os.path.join(upper_name, save_filename)
+
+                    # 이미지 저장
+                    with open(save_path, 'wb') as img_file:
+                        img_file.write(response.content)
+
+                    print('이미지를 성공적으로 저장했습니다.')
+                    img_path = save_path
+                    print(img_path)
+                    print('이미지 위치를 지정했습니다.')
+    except:
+        print("업로드 할 이미지 파일을 찾을 수 없습니다. jpg png jpeg 파일을 적용 가능합니다")
+        print("아래에 수동으로 입력해주세요:")
+        img_path = input().replace('"', '')
 
 
 for filename in os.listdir(upper_name):
@@ -231,7 +273,6 @@ def check_url(n_url, except_site):
             else:
                 print("기존 html의 태그를 일부 수정하여 mod.HTML 파일을 만들고 있습니다")
                 print("시간이 조금 소요될 수 있습니다")
-                print(content_path)
                 remove_img_tags(content_path, content_path_mod)
                 print("파일 생성이 완료되었습니다")
             global except_site_num
