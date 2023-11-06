@@ -638,10 +638,20 @@ for x in List:
                             if "1" in excel_1.iloc[i, 4]:
                                 print("파일명에 1 이 포함되어 스크린샷을 진행합니다")
                                 screenshot_path = upper_name +  "\\" + str(excel_1.iloc[i, 0]) + "_" + str(excel_1.iloc[i, 4]) + ".png"
+                                original_size = driver.get_window_size()
+                                print("저장된 값인 900,1080의 창크기, 화면비율 80퍼센트로 자동 조절합니다")
+                                driver.set_window_size(900, 1080)
+                                driver.execute_script("document.body.style.zoom = '80%'")
+                                try:
+                                    driver.execute_script("window.scrollBy(0, -55)")
+                                except Exception as e:
+                                    print("오류 메시지:", str(e))
                                 print("캡쳐를 위해 화면 크기를 조절해야 합니다. 캡쳐하고 싶은만큼 크롬 창의 화면을 조절하고 엔터")
                                 a = input()
                                 driver.save_screenshot(screenshot_path)
                                 print(screenshot_path + "에 스크린샷이 저장되었습니다")
+                                driver.set_window_size(original_size['width'], original_size['height'])
+                                driver.execute_script("document.body.style.zoom = '100%'")
                             else:
                                 pass
             posting_url_n = "NaN"
