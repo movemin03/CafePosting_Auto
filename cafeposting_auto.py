@@ -13,6 +13,8 @@ from selenium.webdriver.support import expected_conditions as EC
 import os
 import autoit
 from bs4 import BeautifulSoup
+import re
+
 
 # 사용자가 환경에 따라 변경해야 할 값
 upper_path = ""
@@ -28,13 +30,13 @@ except_site = ["exception"] # 사진 별도로 올릴 항목은 여기에 추가
 user = os.getlogin()
 subprocess.Popen(
     r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\' + user + r'\\AppData\\Local\\Google\\Chrome\\User Data"')
+print("\n")
 option = Options()
 option.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 driver = webdriver.Chrome(options=option)
 driver.execute_script('window.open("about:blank", "_blank");')
 tabs = driver.window_handles
 
-# 안내
 print("\n")
 print("씽굿 프로그램입니다. 네이버 전용")
 print("https://github.com/movemin03/CafePosting_Auto")
@@ -633,6 +635,25 @@ for x in List:
                         else:
                             excel_1.iloc[i, 3] = "O"
                             excel_1.iloc[i, 1] = posting_url_n
+                            if "1" in excel_1.iloc[i, 4] and not re.search(r"[023456789]|11|111", excel_1.iloc[i, 4]):
+                                print("파일명에 1 이 포함되어 스크린샷을 진행합니다")
+                                screenshot_path = upper_name +  "\\" + str(excel_1.iloc[i, 4]) + ". " + str(excel_1.iloc[i, 0]) + ".png"
+                                original_size = driver.get_window_size()
+                                print("저장된 값인 900,1080의 창크기, 화면비율 80퍼센트로 자동 조절합니다")
+                                driver.set_window_size(900, 1080)
+                                driver.execute_script("document.body.style.zoom = '70%'")
+                                try:
+                                    driver.execute_script("window.scrollBy(0, -55)")
+                                except Exception as e:
+                                    print("오류 메시지:", str(e))
+                                print("캡쳐를 위해 화면 크기를 조절해야 합니다. 캡쳐하고 싶은만큼 크롬 창의 화면을 조절하고 엔터")
+                                a = input()
+                                driver.save_screenshot(screenshot_path)
+                                print(screenshot_path + "에 스크린샷이 저장되었습니다")
+                                driver.set_window_size(original_size['width'], original_size['height'])
+                                driver.execute_script("document.body.style.zoom = '100%'")
+                            else:
+                                pass
             posting_url_n = "NaN"
             error_posting_url = 0
         except:
@@ -657,3 +678,4 @@ for x in List:
     excel_1.to_excel(result_dir + "\\" + auth + "_" + execute_time + '_작업완료naver.xlsx')
 
 print('작업완료된 내역을 엑셀 파일로 저장하였습니다.')
+
