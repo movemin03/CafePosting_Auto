@@ -1,3 +1,5 @@
+from urllib.parse import urljoin
+import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
@@ -13,20 +15,20 @@ from selenium.webdriver.support import expected_conditions as EC
 import os
 import autoit
 from bs4 import BeautifulSoup
+from PIL import Image
 import re
 
-
 # 사용자가 환경에 따라 변경해야 할 값
-upper_path = ""
-ver = str("2023-10-28 dev ")
+upper_path = "" # 예)홍길동, 안에 11월 등 월별 폴더 존재해야
+ver = str("2023-11-11")
 auth_dic = {'id':'pw'}
-chrome_ver = 116
+chrome_ver = 119
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
 daum_id = ['exception'] # 잘 쓰지 않는 기능. 보통 다음 아이디를 여기에 넣어둠. 로그인 과정 건너뒴
 except_site = ["exception"] # 사진 별도로 올릴 항목은 여기에 추가. 사진을 전부 별도로 올리려면 naver 입력
 
 
-# 크롬드라이버로
+# 크롬드라이버 디버깅 모드 실행
 user = os.getlogin()
 subprocess.Popen(
     r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\' + user + r'\\AppData\\Local\\Google\\Chrome\\User Data"')
@@ -123,6 +125,44 @@ for filename2 in os.listdir(upper_name):
         img_path = os.path.join(upper_name, filename2)
         break
 
+def image_compression(img_path):
+    # 파일 경로에서 디렉토리와 파일명 분리
+    path, file_name = os.path.split(img_path)
+
+    # 20KB와 50KB 이미지 파일이 이미 있는지 확인
+    file_20kb = os.path.join(path, "20kb_" + file_name)
+    file_50kb = os.path.join(path, "50kb_" + file_name)
+
+    if os.path.isfile(file_20kb) and os.path.isfile(file_50kb):
+        print(f"20kb_display.jpg 와 50kb_display.jpg 이미지가 이미 존재합니다")
+    else:
+        print(f"20kb_display.jpg 와 50kb_display.jpg 파일이 없어서 변환합니다")
+        # 이미지를 불러와서 압축
+        img = Image.open(img_path).convert('RGB')
+
+        quality = 90  # 초기 quality 값을 설정
+        img.save(file_50kb, "JPEG", quality=quality)
+
+        new_file_size = os.path.getsize(file_50kb) / 1024  # KB 단위로 변환
+
+        # 파일 크기가 50KB 이하가 될 때까지 quality를 줄여가며 압축
+        while new_file_size > 50:
+            quality -= 10  # quality 값을 줄임
+            img.save(file_50kb, "JPEG", quality=quality)
+            new_file_size = os.path.getsize(file_50kb) / 1024  # KB 단위로 변환
+
+        # 20KB 이하로 압축하는 과정
+        quality = 50  # 초기 quality 값을 설정
+        img.save(file_20kb, "JPEG", quality=quality)
+
+        new_file_size = os.path.getsize(file_20kb) / 1024  # KB 단위로 변환
+
+        # 파일 크기가 20KB 이하가 될 때까지 quality를 줄여가며 압축
+        while new_file_size > 20:
+            quality -= 5  # quality 값을 줄임
+            img.save(file_20kb, "JPEG", quality=quality)
+            new_file_size = os.path.getsize(file_20kb) / 1024  # KB 단위로 변환
+
 if content_path:
     print(f"HTML 파일 경로: {content_path}")
 
@@ -141,6 +181,7 @@ else:
 
 if img_path:
     print(f"이미지 파일 경로: {img_path}")
+    image_compression(img_path)
 else:
     print("업로드 할 이미지 파일을 찾을 수 없습니다")
 
@@ -183,10 +224,12 @@ else:
                     img_path = save_path
                     print(img_path)
                     print('이미지 위치를 지정했습니다.')
+                    image_compression(img_path)
     except:
         print("업로드 할 이미지 파일을 찾을 수 없습니다. jpg png jpeg 파일을 적용 가능합니다")
         print("아래에 수동으로 입력해주세요:")
         img_path = input().replace('"', '')
+        image_compression(img_path)
 
 
 for filename in os.listdir(upper_name):
@@ -637,17 +680,18 @@ for x in List:
                             excel_1.iloc[i, 1] = posting_url_n
                             if "1" in excel_1.iloc[i, 4] and not re.search(r"[023456789]|11|111", excel_1.iloc[i, 4]):
                                 print("파일명에 1 이 포함되어 스크린샷을 진행합니다")
-                                screenshot_path = upper_name +  "\\" + str(excel_1.iloc[i, 4]) + ". " + str(excel_1.iloc[i, 0]) + ".png"
+                                screenshot_path = upper_name +  "\\" + str(excel_1.iloc[i, 0]) + "_" + str(excel_1.iloc[i, 4]) + ".png"
                                 original_size = driver.get_window_size()
-                                print("저장된 값인 900,1080의 창크기, 화면비율 80퍼센트로 자동 조절합니다")
+                                print("저장된 값인 900,1080의 창크기, 화면비율 73퍼센트로 자동 조절합니다")
                                 driver.set_window_size(900, 1080)
-                                driver.execute_script("document.body.style.zoom = '70%'")
+                                driver.execute_script("document.body.style.zoom = '73%'")
                                 try:
-                                    driver.execute_script("window.scrollBy(0, -55)")
+                                    actions = ActionChains(driver)
+                                    actions.send_keys(Keys.PAGE_UP)
+                                    actions.perform()
                                 except Exception as e:
                                     print("오류 메시지:", str(e))
-                                print("캡쳐를 위해 화면 크기를 조절해야 합니다. 캡쳐하고 싶은만큼 크롬 창의 화면을 조절하고 엔터")
-                                a = input()
+                                print("이미지 조정 없이 우선 자동 캡쳐합니다")
                                 driver.save_screenshot(screenshot_path)
                                 print(screenshot_path + "에 스크린샷이 저장되었습니다")
                                 driver.set_window_size(original_size['width'], original_size['height'])
@@ -678,4 +722,3 @@ for x in List:
     excel_1.to_excel(result_dir + "\\" + auth + "_" + execute_time + '_작업완료naver.xlsx')
 
 print('작업완료된 내역을 엑셀 파일로 저장하였습니다.')
-
