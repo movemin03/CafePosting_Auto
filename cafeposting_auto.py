@@ -159,7 +159,8 @@ def image_compression(img_path):
 
         # 파일 크기가 20KB 이하가 될 때까지 quality를 줄여가며 압축
         while new_file_size > 20:
-            quality -= 5  # quality 값을 줄임
+            quality -= 1  # quality 값을 줄임
+            img.thumbnail((img.width * 0.9, img.height * 0.9))  # 이미지 크기를 90%로 줄임
             img.save(file_20kb, "JPEG", quality=quality)
             new_file_size = os.path.getsize(file_20kb) / 1024  # KB 단위로 변환
 
