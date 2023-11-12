@@ -15,18 +15,19 @@ from selenium.webdriver.support import expected_conditions as EC
 import os
 import autoit
 from bs4 import BeautifulSoup
+from PIL import Image
+import re
 
 # 사용자가 환경에 따라 변경해야 할 값
 upper_path = ""
-ver = str("2023-11-02 dev")
+ver = str("2023-11-12 dev")
 auth_dic = {'id':'pw'}
 chrome_ver = 116
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
 daum_id = ['exception'] # 잘 쓰지 않는 기능. 보통 다음 아이디를 여기에 넣어둠. 로그인 과정 건너뒴
 except_site = ["exception"] # 사진 별도로 올릴 항목은 여기에 추가. 사진을 전부 별도로 올리려면 naver 입력
 
-
-# 크롬드라이버로
+# 크롬드라이버 디버깅 모드 실행
 user = os.getlogin()
 subprocess.Popen(
     r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\' + user + r'\\AppData\\Local\\Google\\Chrome\\User Data"')
@@ -109,6 +110,48 @@ except:
     upper_name = input().replace('"', '')
     html_success = 0
 
+def extract_html_info(content_path):
+    # 파일 열기
+    with open(content_path, "r", encoding="utf-8") as file:
+        # HTML 파싱
+        html_content = file.read()
+        soup = BeautifulSoup(html_content, "html.parser")
+
+        # 파일명에서 "_" 문자열과 "(" 문자열이 있는지 확인
+        file_name = content_path.split("\\")[-1]
+        if "_" in file_name and "(" in file_name:
+            # "_" 문자열과 "(" 문자열 사이의 내용 추출
+            start_index = file_name.index("_") + 1
+            end_index = file_name.index("(")
+            html_title = file_name[start_index:end_index]
+        elif "(" in file_name:
+            # "(" 이전까지의 내용 추출
+            end_index = file_name.index("(")
+            html_title = file_name[:end_index]
+        else:
+            # 해당 사항 없음
+            html_title = ""
+
+        # "공모전" 문자열이 있는지 확인
+        if "공모전" in html_title:
+            html_title = "[추천공모전] " + html_title
+        else:
+            html_title = "[추천대외활동] " + html_title
+
+        html_date = None
+        # "접수 기간", "접수기간", "공모기간", "공모 기간" 키워드를 포함하는 요소 탐색
+        target_keywords = ["접수 기간", "접수기간", "공모기간", "공모 기간"]
+        for keyword in target_keywords:
+            element = soup.find(string=lambda text: text and keyword in text)
+            if element:
+                # 기간 추출 (예: "공모기간 : 2023년 10월 26일 ~ 11월 30일")
+                date_range = element.split(":")[-1].strip()
+                end_date = date_range.split("~")[-1].strip()
+                html_date = "(~" + end_date.replace('월 ', '.').replace('일', '') +")"
+                break
+
+        return html_title + html_date
+
 if not html_success == 1:
     for filename in os.listdir(upper_name):
         if filename.endswith(".HTML"):
@@ -123,6 +166,44 @@ for filename2 in os.listdir(upper_name):
         img_path = os.path.join(upper_name, filename2)
         break
 
+def image_compression(img_path):
+    # 파일 경로에서 디렉토리와 파일명 분리
+    path, file_name = os.path.split(img_path)
+
+    # 20KB와 50KB 이미지 파일이 이미 있는지 확인
+    file_20kb = os.path.join(path, "20kb_" + file_name)
+    file_50kb = os.path.join(path, "50kb_" + file_name)
+
+    if os.path.isfile(file_20kb) and os.path.isfile(file_50kb):
+        print(f"20kb_display.jpg 와 50kb_display.jpg 이미지가 이미 존재합니다")
+    else:
+        print(f"20kb_display.jpg 와 50kb_display.jpg 파일이 없어서 변환합니다")
+        # 이미지를 불러와서 압축
+        img = Image.open(img_path).convert('RGB')
+
+        quality = 90  # 초기 quality 값을 설정
+        img.save(file_50kb, "JPEG", quality=quality)
+
+        new_file_size = os.path.getsize(file_50kb) / 1024  # KB 단위로 변환
+
+        # 파일 크기가 50KB 이하가 될 때까지 quality를 줄여가며 압축
+        while new_file_size > 50:
+            quality -= 10  # quality 값을 줄임
+            img.save(file_50kb, "JPEG", quality=quality)
+            new_file_size = os.path.getsize(file_50kb) / 1024  # KB 단위로 변환
+
+        # 20KB 이하로 압축하는 과정
+        quality = 50  # 초기 quality 값을 설정
+        img.save(file_20kb, "JPEG", quality=quality)
+
+        new_file_size = os.path.getsize(file_20kb) / 1024  # KB 단위로 변환
+
+        # 파일 크기가 20KB 이하가 될 때까지 quality를 줄여가며 압축
+        while new_file_size > 20:
+            quality -= 5  # quality 값을 줄임
+            img.save(file_20kb, "JPEG", quality=quality)
+            new_file_size = os.path.getsize(file_20kb) / 1024  # KB 단위로 변환
+
 if content_path:
     print(f"HTML 파일 경로: {content_path}")
 
@@ -136,11 +217,28 @@ if post_title_path:
     print(f"제목.txt 파일 경로: {post_title_path}")
 else:
     print("제목.txt 파일을 찾을 수 없습니다.")
-    print("아래에 수동으로 입력해주세요:")
-    post_title_path = input().replace('"', '')
+    try:
+        html_info = extract_html_info(content_path)
+        with open(upper_name + "\\제목.txt", "w", encoding="utf-8") as file:
+            file.write(html_info)
+        print("자동으로 제목.txt 를 생성합니다")
+        for filename in os.listdir(upper_name):
+            if filename == "제목.txt":
+                post_title_path = os.path.join(upper_name, filename)
+    except:
+        pass
+    print(html_info)
+    print("위 내용이 맞는지 확인하고 맞으면 엔터 아니라면 n 입력")
+    a = input()
+    if a == "n":
+        print("내용을 수정하고 txt 파일 경로를 넣어주십시오")
+        post_title_path = input().replace('"', '')
+    else:
+        pass
 
 if img_path:
     print(f"이미지 파일 경로: {img_path}")
+    image_compression(img_path)
 else:
     print("업로드 할 이미지 파일을 찾을 수 없습니다")
 
@@ -183,10 +281,12 @@ else:
                     img_path = save_path
                     print(img_path)
                     print('이미지 위치를 지정했습니다.')
+                    image_compression(img_path)
     except:
         print("업로드 할 이미지 파일을 찾을 수 없습니다. jpg png jpeg 파일을 적용 가능합니다")
         print("아래에 수동으로 입력해주세요:")
         img_path = input().replace('"', '')
+        image_compression(img_path)
 
 
 for filename in os.listdir(upper_name):
@@ -635,19 +735,20 @@ for x in List:
                         else:
                             excel_1.iloc[i, 3] = "O"
                             excel_1.iloc[i, 1] = posting_url_n
-                            if "1" in excel_1.iloc[i, 4]:
+                            if "1" in excel_1.iloc[i, 4] and not re.search(r"[023456789]|11|111", excel_1.iloc[i, 4]):
                                 print("파일명에 1 이 포함되어 스크린샷을 진행합니다")
                                 screenshot_path = upper_name +  "\\" + str(excel_1.iloc[i, 0]) + "_" + str(excel_1.iloc[i, 4]) + ".png"
                                 original_size = driver.get_window_size()
-                                print("저장된 값인 900,1080의 창크기, 화면비율 80퍼센트로 자동 조절합니다")
+                                print("저장된 값인 900,1080의 창크기, 화면비율 73퍼센트로 자동 조절합니다")
                                 driver.set_window_size(900, 1080)
-                                driver.execute_script("document.body.style.zoom = '80%'")
+                                driver.execute_script("document.body.style.zoom = '73%'")
                                 try:
-                                    driver.execute_script("window.scrollBy(0, -55)")
+                                    actions = ActionChains(driver)
+                                    actions.send_keys(Keys.PAGE_UP)
+                                    actions.perform()
                                 except Exception as e:
                                     print("오류 메시지:", str(e))
-                                print("캡쳐를 위해 화면 크기를 조절해야 합니다. 캡쳐하고 싶은만큼 크롬 창의 화면을 조절하고 엔터")
-                                a = input()
+                                print("이미지 조정 없이 우선 자동 캡쳐합니다")
                                 driver.save_screenshot(screenshot_path)
                                 print(screenshot_path + "에 스크린샷이 저장되었습니다")
                                 driver.set_window_size(original_size['width'], original_size['height'])
