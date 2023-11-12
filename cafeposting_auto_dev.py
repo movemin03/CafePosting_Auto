@@ -1,32 +1,3 @@
-from urllib.parse import urljoin
-import requests
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.by import By
-import time
-import pyperclip
-import pandas as pd
-import subprocess
-from datetime import datetime
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import os
-import autoit
-from bs4 import BeautifulSoup
-from PIL import Image
-import re
-
-# 사용자가 환경에 따라 변경해야 할 값
-upper_path = ""
-ver = str("2023-11-12 dev")
-auth_dic = {'id':'pw'}
-chrome_ver = 116
-filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
-daum_id = ['exception'] # 잘 쓰지 않는 기능. 보통 다음 아이디를 여기에 넣어둠. 로그인 과정 건너뒴
-except_site = ["exception"] # 사진 별도로 올릴 항목은 여기에 추가. 사진을 전부 별도로 올리려면 naver 입력
-
 # 크롬드라이버 디버깅 모드 실행
 user = os.getlogin()
 subprocess.Popen(
@@ -147,7 +118,7 @@ def extract_html_info(content_path):
                 # 기간 추출 (예: "공모기간 : 2023년 10월 26일 ~ 11월 30일")
                 date_range = element.split(":")[-1].strip()
                 end_date = date_range.split("~")[-1].strip()
-                html_date = "(~" + end_date.replace('월 ', '.').replace('일', '') +")"
+                html_date = "(~" + end_date.replace('년', '.').replace('(', '').replace(')', '').replace('월 ', '.').replace('일', '') +")"
                 break
 
         return html_title + html_date
@@ -219,22 +190,25 @@ else:
     print("제목.txt 파일을 찾을 수 없습니다.")
     try:
         html_info = extract_html_info(content_path)
+        print("html 파일을 참고하여 추천해드리겠습니다")
+        print("파일별로 접수기간을 제시하는 형식이 모두 달라서 자동으로 인식되는 내용이 잘못되었을 수 있습니다")
+        print(html_info)
+        print("위 내용이 맞는지 확인하고 맞으면 엔터 아니라면 n 입력")
+        a = input()
+        if a == "n":
+            print("제목.txt 파일에 들어갈 내용을 입력해주시면 제목.txt로 저장됩니다")
+            html_info = input()
+        else:
+            pass
         with open(upper_name + "\\제목.txt", "w", encoding="utf-8") as file:
             file.write(html_info)
-        print("자동으로 제목.txt 를 생성합니다")
+        print("제목.txt 를 생성합니다")
         for filename in os.listdir(upper_name):
             if filename == "제목.txt":
                 post_title_path = os.path.join(upper_name, filename)
     except:
         pass
-    print(html_info)
-    print("위 내용이 맞는지 확인하고 맞으면 엔터 아니라면 n 입력")
-    a = input()
-    if a == "n":
-        print("내용을 수정하고 txt 파일 경로를 넣어주십시오")
-        post_title_path = input().replace('"', '')
-    else:
-        pass
+
 
 if img_path:
     print(f"이미지 파일 경로: {img_path}")
