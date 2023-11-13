@@ -1,3 +1,32 @@
+from urllib.parse import urljoin
+import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
+import time
+import pyperclip
+import pandas as pd
+import subprocess
+from datetime import datetime
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import os
+import autoit
+from bs4 import BeautifulSoup
+from PIL import Image
+import re
+
+# 사용자가 환경에 따라 변경해야 할 값
+upper_path = "" # 예)홍길동, 안에 11월 등 월별 폴더 존재해야
+ver = str("2023-11-11")
+auth_dic = {'id':'pw'}
+chrome_ver = 119
+filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
+daum_id = ['exception'] # 잘 쓰지 않는 기능. 보통 다음 아이디를 여기에 넣어둠. 로그인 과정 건너뒴
+except_site = ["exception"] # 사진 별도로 올릴 항목은 여기에 추가. 사진을 전부 별도로 올리려면 naver 입력
+
 # 크롬드라이버 디버깅 모드 실행
 user = os.getlogin()
 subprocess.Popen(
