@@ -43,6 +43,9 @@ print("씽굿 프로그램입니다. 네이버 전용")
 print("https://github.com/movemin03/CafePosting_Auto")
 print("ver:" + ver)
 
+print("조사통계모드로 진행할까요? 그럴거라면 1 입력, 아니면 아무거나 입력")
+total_mode = str(input())
+
 # 정보 입력
 print('필요한 정보를 기입해야합니다\n')
 now = time.localtime()
@@ -77,8 +80,11 @@ if os.path.exists(file_path):
             else:
                 pass
 else:
-    print("최상위 폴더 경로를 지정해주세요")
-    upper_name = input().replace('"', '')
+    if total_mode == "1":
+        pass
+    else:
+        print("최상위 폴더 경로를 지정해주세요")
+        upper_name = input().replace('"', '')
 
 blank_auth_dic = {}
 slash_auth_dic = {}
@@ -97,18 +103,23 @@ content_path = None
 title = None
 post_title_path = None
 img_path = None
+member_txt = None
+level_text = None
+html_success = None
 
 try:
     for filename in os.listdir(upper_name):
         if filename.endswith(".HTML") and filename != "mod.HTML":
             content_path = os.path.join(upper_name, filename)
-            global html_success
             html_success = 1
 except:
-    print("오늘 날짜가 포함된 폴더가 없거나 찾을 수 없어서 자동인식이 되지 않았습니다")
-    print("최상위 폴더 경로를 지정해주세요")
-    upper_name = input().replace('"', '')
-    html_success = 0
+    if total_mode == "1":
+        pass
+    else:
+        print("오늘 날짜가 포함된 폴더가 없거나 찾을 수 없어서 자동인식이 되지 않았습니다")
+        print("최상위 폴더 경로를 지정해주세요")
+        upper_name = input().replace('"', '')
+        html_success = 0
 
 def extract_html_info(content_path):
     # 파일 열기
@@ -152,20 +163,6 @@ def extract_html_info(content_path):
 
         return html_title + html_date
 
-if not html_success == 1:
-    for filename in os.listdir(upper_name):
-        if filename.endswith(".HTML"):
-            content_path = os.path.join(upper_name, filename)
-
-for filename in os.listdir(upper_name):
-    if filename == "제목.txt":
-        post_title_path = os.path.join(upper_name, filename)
-
-for filename2 in os.listdir(upper_name):
-    if filename2 == "display.jpg" or filename2 == "display.jpeg" or filename2 == "display.png":
-        img_path = os.path.join(upper_name, filename2)
-        break
-
 def image_compression(img_path):
     # 파일 경로에서 디렉토리와 파일명 분리
     path, file_name = os.path.split(img_path)
@@ -204,97 +201,124 @@ def image_compression(img_path):
             img.save(file_20kb, "JPEG", quality=quality)
             new_file_size = os.path.getsize(file_20kb) / 1024  # KB 단위로 변환
 
-if content_path:
-    print(f"HTML 파일 경로: {content_path}")
-
+if total_mode == "1":
+    pass
 else:
-    print("HTML 파일을 찾을 수 없습니다. .HTML 인지 확인해주십시오. .html 처럼 소문자인 경우에도 인식하지 못합니다")
-    print("아래에 수동으로 입력해주세요:")
-    content_path = input().replace('"', '')
-
-
-if post_title_path:
-    print(f"제목.txt 파일 경로: {post_title_path}")
-else:
-    print("제목.txt 파일을 찾을 수 없습니다.")
-    try:
-        html_info = extract_html_info(content_path)
-        print("html 파일을 참고하여 추천해드리겠습니다")
-        print("파일별로 접수기간을 제시하는 형식이 모두 달라서 자동으로 인식되는 내용이 잘못되었을 수 있습니다")
-        print(html_info)
-        print("위 내용이 맞는지 확인하고 맞으면 엔터 아니라면 n 입력")
-        a = input()
-        if a == "n":
-            print("제목.txt 파일에 들어갈 내용을 입력해주시면 제목.txt로 저장됩니다")
-            html_info = input()
-        else:
-            pass
-        with open(upper_name + "\\제목.txt", "w", encoding="utf-8") as file:
-            file.write(html_info)
-        print("제목.txt 를 생성합니다")
+    if not html_success == 1:
         for filename in os.listdir(upper_name):
-            if filename == "제목.txt":
-                post_title_path = os.path.join(upper_name, filename)
-    except:
-        pass
+            if filename.endswith(".HTML"):
+                content_path = os.path.join(upper_name, filename)
+
+    for filename in os.listdir(upper_name):
+        if filename == "제목.txt":
+            post_title_path = os.path.join(upper_name, filename)
+
+    for filename2 in os.listdir(upper_name):
+        if filename2 == "display.jpg" or filename2 == "display.jpeg" or filename2 == "display.png":
+            img_path = os.path.join(upper_name, filename2)
+            break
+
+    if content_path:
+        print(f"HTML 파일 경로: {content_path}")
+
+    else:
+        print("HTML 파일을 찾을 수 없습니다. .HTML 인지 확인해주십시오. .html 처럼 소문자인 경우에도 인식하지 못합니다")
+        print("아래에 수동으로 입력해주세요:")
+        content_path = input().replace('"', '')
 
 
-if img_path:
-    print(f"이미지 파일 경로: {img_path}")
-    image_compression(img_path)
-else:
-    print("업로드 할 이미지 파일을 찾을 수 없습니다")
+    if post_title_path:
+        print(f"제목.txt 파일 경로: {post_title_path}")
+    else:
+        print("제목.txt 파일을 찾을 수 없습니다.")
+        try:
+            html_info = extract_html_info(content_path)
+            print("html 파일을 참고하여 추천해드리겠습니다")
+            print("파일별로 접수기간을 제시하는 형식이 모두 달라서 자동으로 인식되는 내용이 잘못되었을 수 있습니다")
+            print(html_info)
+            print("위 내용이 맞는지 확인하고 맞으면 엔터 아니라면 n 입력")
+            a = input()
+            if a == "n":
+                print("제목.txt 파일에 들어갈 내용을 입력해주시면 제목.txt로 저장됩니다")
+                html_info = input()
+            else:
+                pass
+            with open(upper_name + "\\제목.txt", "w", encoding="utf-8") as file:
+                file.write(html_info)
+            print("제목.txt 를 생성합니다")
+            for filename in os.listdir(upper_name):
+                if filename == "제목.txt":
+                    post_title_path = os.path.join(upper_name, filename)
+        except:
+            pass
 
-    try:
-        print("이미지를 자동 내려받기를 시도합니다")
-        with open(content_path, 'r', encoding='utf-8') as file:
+
+    if img_path:
+        print(f"이미지 파일 경로: {img_path}")
+        image_compression(img_path)
+    else:
+        print("업로드 할 이미지 파일을 찾을 수 없습니다")
+
+        try:
+            print("이미지를 자동 내려받기를 시도합니다")
+            with open(content_path, 'r', encoding='utf-8') as file:
             # 파일 내용 읽기
-            file_content = file.read()
+                file_content = file.read()
 
             # img 태그 찾기
-            img_tags = file_content.split('<img')
+                img_tags = file_content.split('<img')
 
             # 이미지 다운로드 및 저장
-            for img_tag in img_tags:
-                if 'src="' in img_tag:
+                for img_tag in img_tags:
+                    if 'src="' in img_tag:
                     # 이미지 링크 추출
-                    img_src_start = img_tag.index('src="') + len('src="')
-                    img_src_end = img_tag.index('"', img_src_start)
-                    img_src = img_tag[img_src_start:img_src_end]
+                        img_src_start = img_tag.index('src="') + len('src="')
+                        img_src_end = img_tag.index('"', img_src_start)
+                        img_src = img_tag[img_src_start:img_src_end]
 
                     # 이미지 링크를 절대 경로로 변환
-                    img_url = urljoin(content_path, img_src)
-                    img_url = img_url.replace("amp;", "")
+                        img_url = urljoin(content_path, img_src)
+                        img_url = img_url.replace("amp;", "")
 
                     # 이미지 다운로드
-                    response = requests.get(img_url)
+                        response = requests.get(img_url)
 
                     # 이미지 파일명 추출
-                    img_filename = os.path.basename(img_url)
+                        img_filename = os.path.basename(img_url)
 
                     # 이미지 저장 파일명
-                    save_filename = 'display.jpg'
-                    save_path = os.path.join(upper_name, save_filename)
+                        save_filename = 'display.jpg'
+                        save_path = os.path.join(upper_name, save_filename)
 
                     # 이미지 저장
-                    with open(save_path, 'wb') as img_file:
-                        img_file.write(response.content)
+                        with open(save_path, 'wb') as img_file:
+                            img_file.write(response.content)
 
-                    print('이미지를 성공적으로 저장했습니다.')
-                    img_path = save_path
-                    print(img_path)
-                    print('이미지 위치를 지정했습니다.')
-                    image_compression(img_path)
+                        print('이미지를 성공적으로 저장했습니다.')
+                        img_path = save_path
+                        print(img_path)
+                        print('이미지 위치를 지정했습니다.')
+                        image_compression(img_path)
+        except:
+            print("업로드 할 이미지 파일을 찾을 수 없습니다. jpg png jpeg 파일을 적용 가능합니다")
+            print("아래에 수동으로 입력해주세요:")
+            img_path = input().replace('"', '')
+            image_compression(img_path)
+
+    try:
+        with open(post_title_path, encoding='utf-8') as file:
+            title = file.readline().strip()
+        print("업로드할 게시물 이름:", title)
     except:
-        print("업로드 할 이미지 파일을 찾을 수 없습니다. jpg png jpeg 파일을 적용 가능합니다")
-        print("아래에 수동으로 입력해주세요:")
-        img_path = input().replace('"', '')
-        image_compression(img_path)
+        print("게시물의 제목을 적어주십시오:")
+        title = input()
 
-
-for filename in os.listdir(upper_name):
-    if filename == "naver_cafe.xlsx":
-        upload_path = os.path.join(upper_name, filename)
+try:
+    for filename in os.listdir(upper_name):
+        if filename == "naver_cafe.xlsx":
+            upload_path = os.path.join(upper_name, filename)
+except:
+    pass
 
 try:
     print(f"\n참고 엑셀 파일 경로: {upload_path}")
@@ -310,13 +334,7 @@ except:
     upload_path = input().replace('"', '')
     print(f"참고 엑셀 파일 경로: {upload_path}")
 
-try:
-    with open(post_title_path, encoding='utf-8') as file:
-        title = file.readline().strip()
-    print("업로드할 게시물 이름:", title)
-except:
-    print("게시물의 제목을 적어주십시오:")
-    title = input()
+
 
 # 데이터 전처리0
 print('\n 입력하신 엑셀파일을 읽어오고 있습니다')
@@ -441,6 +459,54 @@ def login():
     print("로그인: 로그인 작업 진행 완료\n")
     a = input("2차 인증 여부 및 아이디가 " + auth + "가 맞는지 확인해주시고 아무거나 입력 후 엔터")
 
+def total():
+    global status_stop
+    status_stop = 0
+
+    global tabs
+    tabs = driver.window_handles
+    print(str(tabs))
+    try:
+        if len(tabs) >= 2:
+            driver.switch_to.window(tabs[1])
+        else:
+            print("탭이 부족해서 새 탭을 엽니다")
+            driver.switch_to.window(tabs[0])
+            driver.execute_script('window.open("about:blank", "_blank");')
+            tabs = driver.window_handles
+            driver.switch_to.window(tabs[1])
+            time.sleep(2)
+    except:
+        print("탭 갯수: " + str(len(tabs)))
+        print("탭 관리에 문제가 있습니다")
+        print("탭을 수동으로 열어주십시오")
+        a = input()
+
+    if naver_url.count("/") > 3:
+        split_text = naver_url.split("/")
+        split_text = split_text[:4]  # 처음 4개의 요소만 유지
+        n_url = "/".join(split_text)
+    else:
+        n_url = naver_url
+    driver.get(n_url)
+    print("링크 접속 완료: " + n_url)
+    global error_myactivity
+    error_myactivity = 0
+    global error_myactivity_detail
+    error_myactivity_detail = ""
+
+    # 멤버수, 카페 등급 조회
+    print("회원수 및 사이트 등급 정보를 불러옵니다")
+    wait.until(EC.presence_of_element_located((By.XPATH, '//li[@class="level-info border-sub"]/*[1]/*[3]')))
+    member = driver.find_element(By.XPATH, '//li[@class="level-info border-sub"]/*[1]/*[3]')
+    global member_txt
+    member_txt = member.text
+    print(str(member_txt))
+
+    level = driver.find_element(By.XPATH,'//li[@class="mem-cnt-info"]/a/*[2]')
+    global level_text
+    level_text = level.text.replace("비공개", "").replace("공개", "")
+    print(str(level_text))
 def posting():
     global status_stop
     status_stop = 0
@@ -476,6 +542,7 @@ def posting():
     error_myactivity = 0
     global error_myactivity_detail
     error_myactivity_detail = ""
+
     # 포스팅
     try:
         driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH,
@@ -705,8 +772,10 @@ for x in List:
 
     if len_naver > 0:
         try:
-            if auth in daum_id:
-                print("다음아이디로 판별되어 로그인하지 않습니다")
+            if auth in daum_id or total_mode == "1":
+                print("조사 모드이거나 다음아이디로 판별되어 로그인 과정을 건너 뜁니다")
+                excel_1["카페등급"] = ""
+                excel_1["회원수"] = ""
             else:
                 login()
         except:
@@ -719,7 +788,19 @@ for x in List:
     while i < len_naver:
         try:
             naver_url = naver_list[i]
-            posting()
+            if auth in daum_id or total_mode == "1":
+                total()
+                try:
+                    if member_txt is not None:
+                        excel_1.iloc[i, 5] = member_txt
+                        excel_1.iloc[i, 6] = level_text
+                    else:
+                        print("member_txt 값이 없습니다")
+                except Exception as e:
+                    print(e)
+                    print("회원수 및 등급 정보 입력을 실패했습니다")
+            else:
+                posting()
             if error_posting_url == 1:
                 excel_1.iloc[i, 3] = "X"
                 excel_1.iloc[i, 1] = posting_url_n + " : " +error_myactivity_detail
@@ -751,7 +832,9 @@ for x in List:
                                     actions.perform()
                                 except Exception as e:
                                     print("오류 메시지:", str(e))
-                                print("이미지 조정 없이 우선 자동 캡쳐합니다")
+
+                                print("크롬 창크기를 조정해주세요 크기대로 캡쳐됩니다. 하고 엔터")
+                                a = input()
                                 driver.save_screenshot(screenshot_path)
                                 print(screenshot_path + "에 스크린샷이 저장되었습니다")
                                 driver.set_window_size(original_size['width'], original_size['height'])
