@@ -43,6 +43,7 @@ print("씽굿 프로그램입니다. 네이버 전용")
 print("https://github.com/movemin03/CafePosting_Auto")
 print("ver:" + ver)
 
+print("업로드 없이 카페의 회원 수 정보와 카페 랭킹 정보를 취합하는 조사 통계 모드를 사용할 수 있습니다")
 print("조사통계모드로 진행할까요? 그럴거라면 1 입력, 아니면 아무거나 입력")
 total_mode = str(input())
 
@@ -629,10 +630,8 @@ def posting():
             driver.get(mcn_lnk)
 
         try:
-            wait.until(EC.presence_of_element_located(
-                (By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea')))
-            driver.find_element(By.XPATH,
-                                '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea').click()
+            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div/div[2]/div/textarea')))
+            driver.find_element(By.XPATH,'//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div/div[2]/div/textarea').click()
 
             action = ActionChains(driver)
             action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
