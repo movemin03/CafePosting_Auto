@@ -13,7 +13,7 @@ import pyperclip
 from selenium.webdriver.common.keys import Keys
 
 
-#크롬 로딩
+#크롬 로딩..
 options = webdriver.ChromeOptions()
 options.add_argument("headless")
 # driver = webdriver.Chrome() 크롬창 headless 모드를 해제하려면 이것 사용
