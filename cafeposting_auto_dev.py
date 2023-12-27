@@ -458,7 +458,16 @@ def login():
     login_btn = driver.find_element(By.ID, 'log.login')
     login_btn.click()
     print("로그인: 로그인 작업 진행 완료\n")
-    a = input("2차 인증 여부 및 아이디가 " + auth + "가 맞는지 확인해주시고 아무거나 입력 후 엔터")
+
+    try:
+        wait_s = WebDriverWait(driver, 20)
+        wait_s.until(EC.presence_of_element_located((By.XPATH, '//*[@id="account"]/div[1]/div/div/div[2]')))
+        id_chk = driver.find_element(By.XPATH, '//*[@id="account"]/div[1]/div/div/div[2]').text.replace("@naver.com", "")
+        if auth != id_chk:
+            a = input("2차 인증 여부 및 아이디가 " + auth + "가 맞는지 확인해주시고 아무거나 입력 후 엔터: ")
+    except:
+        print("20초 타임아웃:")
+        a = input("2차 인증 여부 및 아이디가 " + auth + "가 맞는지 확인해주시고 아무거나 입력 후 엔터")
 
 def total():
     global status_stop
@@ -671,7 +680,7 @@ def posting():
                     pass
                 a = input()
             else:
-                time.sleep(3)
+                time.sleep(2)
 
             driver.find_element(By.XPATH, '//span[contains(@class,"BaseButton__txt")]').click()
             print("글쓰기 4/4: 업로드 완료")
