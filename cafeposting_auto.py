@@ -573,10 +573,8 @@ def posting():
             driver.get(mcn_lnk)
 
         try:
-            wait.until(EC.presence_of_element_located(
-                (By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea')))
-            driver.find_element(By.XPATH,
-                                '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div[2]/div/textarea').click()
+            wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div/div[2]/div/textarea')))
+            driver.find_element(By.XPATH,'//*[@id="app"]/div/div/section/div/div[2]/div[1]/div[1]/div/div[2]/div/textarea').click()
 
             action = ActionChains(driver)
             action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
