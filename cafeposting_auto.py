@@ -111,6 +111,48 @@ except:
     upper_name = input().replace('"', '')
     html_success = 0
 
+def extract_html_info(content_path):
+    # 파일 열기
+    with open(content_path, "r", encoding="utf-8") as file:
+        # HTML 파싱
+        html_content = file.read()
+        soup = BeautifulSoup(html_content, "html.parser")
+
+        # 파일명에서 "_" 문자열과 "(" 문자열이 있는지 확인
+        file_name = content_path.split("\\")[-1]
+        if "_" in file_name and "(" in file_name:
+            # "_" 문자열과 "(" 문자열 사이의 내용 추출
+            start_index = file_name.index("_") + 1
+            end_index = file_name.index("(")
+            html_title = file_name[start_index:end_index]
+        elif "(" in file_name:
+            # "(" 이전까지의 내용 추출
+            end_index = file_name.index("(")
+            html_title = file_name[:end_index]
+        else:
+            # 해당 사항 없음
+            html_title = ""
+
+        # "공모전" 문자열이 있는지 확인
+        if "공모전" in html_title:
+            html_title = "[추천공모전] " + html_title
+        else:
+            html_title = "[추천대외활동] " + html_title
+
+        html_date = None
+        # "접수 기간", "접수기간", "공모기간", "공모 기간" 키워드를 포함하는 요소 탐색
+        target_keywords = ["접수 기간", "접수기간", "공모기간", "공모 기간"]
+        for keyword in target_keywords:
+            element = soup.find(string=lambda text: text and keyword in text)
+            if element:
+                # 기간 추출 (예: "공모기간 : 2023년 10월 26일 ~ 11월 30일")
+                date_range = element.split(":")[-1].strip()
+                end_date = date_range.split("~")[-1].strip()
+                html_date = "(~" + end_date.replace('년', '.').replace('(', '').replace(')', '').replace('월 ', '.').replace('일', '') +")"
+                break
+
+        return html_title + html_date
+
 if not html_success == 1:
     for filename in os.listdir(upper_name):
         if filename.endswith(".HTML"):
@@ -159,8 +201,7 @@ def image_compression(img_path):
 
         # 파일 크기가 20KB 이하가 될 때까지 quality를 줄여가며 압축
         while new_file_size > 20:
-            quality -= 1  # quality 값을 줄임
-            img.thumbnail((img.width * 0.9, img.height * 0.9))  # 이미지 크기를 90%로 줄임
+            quality -= 5  # quality 값을 줄임
             img.save(file_20kb, "JPEG", quality=quality)
             new_file_size = os.path.getsize(file_20kb) / 1024  # KB 단위로 변환
 
@@ -177,8 +218,27 @@ if post_title_path:
     print(f"제목.txt 파일 경로: {post_title_path}")
 else:
     print("제목.txt 파일을 찾을 수 없습니다.")
-    print("아래에 수동으로 입력해주세요:")
-    post_title_path = input().replace('"', '')
+    try:
+        html_info = extract_html_info(content_path)
+        print("html 파일을 참고하여 추천해드리겠습니다")
+        print("파일별로 접수기간을 제시하는 형식이 모두 달라서 자동으로 인식되는 내용이 잘못되었을 수 있습니다")
+        print(html_info)
+        print("위 내용이 맞는지 확인하고 맞으면 엔터 아니라면 n 입력")
+        a = input()
+        if a == "n":
+            print("제목.txt 파일에 들어갈 내용을 입력해주시면 제목.txt로 저장됩니다")
+            html_info = input()
+        else:
+            pass
+        with open(upper_name + "\\제목.txt", "w", encoding="utf-8") as file:
+            file.write(html_info)
+        print("제목.txt 를 생성합니다")
+        for filename in os.listdir(upper_name):
+            if filename == "제목.txt":
+                post_title_path = os.path.join(upper_name, filename)
+    except:
+        pass
+
 
 if img_path:
     print(f"이미지 파일 경로: {img_path}")
@@ -380,7 +440,16 @@ def login():
     login_btn = driver.find_element(By.ID, 'log.login')
     login_btn.click()
     print("로그인: 로그인 작업 진행 완료\n")
-    a = input("2차 인증 여부 및 아이디가 " + auth + "가 맞는지 확인해주시고 아무거나 입력 후 엔터")
+
+    try:
+        wait_s = WebDriverWait(driver, 20)
+        wait_s.until(EC.presence_of_element_located((By.XPATH, '//*[@id="account"]/div[1]/div/div/div[2]')))
+        id_chk = driver.find_element(By.XPATH, '//*[@id="account"]/div[1]/div/div/div[2]').text.replace("@naver.com", "")
+        if auth != id_chk:
+            a = input("2차 인증 여부 및 아이디가 " + auth + "가 맞는지 확인해주시고 아무거나 입력 후 엔터: ")
+    except:
+        print("20초 타임아웃:")
+        a = input("2차 인증 여부 및 아이디가 " + auth + "가 맞는지 확인해주시고 아무거나 입력 후 엔터")
 
 def posting():
     global status_stop
@@ -417,6 +486,7 @@ def posting():
     error_myactivity = 0
     global error_myactivity_detail
     error_myactivity_detail = ""
+
     # 포스팅
     try:
         driver.find_element(By.CLASS_NAME, 'cafe-info-action').find_element(By.XPATH,
@@ -692,7 +762,9 @@ for x in List:
                                     actions.perform()
                                 except Exception as e:
                                     print("오류 메시지:", str(e))
-                                print("이미지 조정 없이 우선 자동 캡쳐합니다")
+
+                                print("크롬 창크기를 조정해주세요 크기대로 캡쳐됩니다. 하고 엔터")
+                                a = input()
                                 driver.save_screenshot(screenshot_path)
                                 print(screenshot_path + "에 스크린샷이 저장되었습니다")
                                 driver.set_window_size(original_size['width'], original_size['height'])
