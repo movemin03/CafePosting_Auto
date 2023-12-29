@@ -42,6 +42,16 @@ excel_label.pack()
 excel_entry = ttk.Entry(root, width=67)
 excel_entry.pack()
 
+def example_xlsx():
+    ex_df = pd.DataFrame(columns=filter_list)
+    user = os.getlogin()
+    ex_df_time = datetime.today().strftime("%Y%m%d_%H%M%S")
+    file_path = "C:\\Users\\" + user + "\\Desktop\\입력양식_네이버카페_tracker_" + str(ex_df_time) + '.xlsx'
+    ex_df.to_excel(file_path, index=False)
+    messagebox.showinfo(title="알림", message=file_path + ".xlsx 에 양식이 저장되었습니다")
+
+button = ttk.Button(root, text="엑셀 입력 양식 생성", command=example_xlsx)
+button.pack()
 
 Result_Viewlabel = ttk.LabelFrame(text="실행내용")
 Result_Viewlabel.pack()
@@ -64,6 +74,10 @@ data = {
             'pl_view': [],
             'pl_comments': []
         }
+
+
+
+
 def restart_driver():
     options = webdriver.ChromeOptions()
     options.add_argument("headless")
@@ -324,6 +338,7 @@ def execute():
         execution_time = end_time - start_time
         result()
         Result_Viewlabel_Scrollbar.insert(tk.END, f"검색 소요 시간: {execution_time}")
+
 
 
 button = ttk.Button(root, text="검색", command=execute)
