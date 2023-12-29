@@ -301,9 +301,12 @@ def execute():
         Result_Viewlabel_Scrollbar.update()
 
         print(excel_input)
-        individual_dfs = get_site_address_list(excel_input)
-        Result_Viewlabel_Scrollbar.insert(tk.END, "검색을 위한 크롬드라이버를 로딩하고 있는 중입니다")
-        Result_Viewlabel_Scrollbar.update()
+        try:
+            individual_dfs = get_site_address_list(excel_input)
+            Result_Viewlabel_Scrollbar.insert(tk.END, "검색을 위한 크롬드라이버를 로딩하고 있는 중입니다")
+            Result_Viewlabel_Scrollbar.update()
+        except FileNotFoundError:
+            Result_Viewlabel_Scrollbar.insert(tk.END, "잘못된 엑셀 경로가 입력되었습니다. 다시 입력해주세요")
         for user_id, df in individual_dfs.items():
             print(f"사용자 아이디: {user_id}")
             print(f"데이터 프레임: \n{df}\n")
