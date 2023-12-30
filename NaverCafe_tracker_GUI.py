@@ -15,18 +15,25 @@ from selenium.webdriver.common.keys import Keys
 import time
 
 # 사용자 지정..
-ver = str("2023-12-29")
+ver = str("2023-12-30")
 auth_dic = {'id': 'pw'}
-chrome_ver = 119
+chrome_ver = 120
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
 
 # 크롬 로딩..
 login_status = 0
 options = webdriver.ChromeOptions()
 options.add_argument("headless")
-# driver = webdriver.Chrome() 크롬창 headless 모드를 해제하려면 이것 사용
-# driver = webdriver.Chrome()
-driver = webdriver.Chrome(options=options)
+
+try:
+    driver = webdriver.Chrome(options=options)
+    #driver = webdriver.Chrome()
+except:
+    answer = messagebox.askyesno("크롬 실행 불가 오류", "인터넷이 연결되지 않았습니다. 인터넷 연결을 하셨나요?")
+    if answer:
+        print("재시도합니다")
+    else:
+        messagebox.showinfo(title="알림", message="프로그램이 작동하지 않습니다. 재실행해주세요")
 
 root = tk.Tk()
 root.geometry("500x600")
@@ -320,24 +327,29 @@ def execute():
             Result_Viewlabel_Scrollbar.insert(tk.END, "검색을 위한 크롬드라이버를 로딩하고 있는 중입니다")
             Result_Viewlabel_Scrollbar.update()
         except FileNotFoundError:
-            Result_Viewlabel_Scrollbar.insert(tk.END, "잘못된 엑셀 경로가 입력되었습니다. 다시 입력해주세요")
-        for user_id, df in individual_dfs.items():
-            print(f"사용자 아이디: {user_id}")
-            print(f"데이터 프레임: \n{df}\n")
-            list_individual = df['사이트주소'].tolist()
-            login(user_id)
-            for url in list_individual:
-                try:
-                    work(url, keyword)
-                except NoSuchWindowException:
-                    restart_driver()
+            Result_Viewlabel_Scrollbar.insert(tk.END, "잘못된 엑셀 경로가 입력되었습니다")
+        try:
+            for user_id, df in individual_dfs.items():
+                print(f"사용자 아이디: {user_id}")
+                print(f"데이터 프레임: \n{df}\n")
+                list_individual = df['사이트주소'].tolist()
+                login(user_id)
+                for url in list_individual:
+                    try:
+                        work(url, keyword)
+                    except NoSuchWindowException:
+                        restart_driver()
+            Result_Viewlabel_Scrollbar.insert(tk.END, "검색이 완료되어 결과를 내보내는 중입니다")
+            Result_Viewlabel_Scrollbar.update()
+            end_time = datetime.now()
+            execution_time = end_time - start_time
+            result()
+            Result_Viewlabel_Scrollbar.insert(tk.END, f"검색 소요 시간: {execution_time}")
+        except UnboundLocalError:
+            Result_Viewlabel_Scrollbar.insert(tk.END, "잘못된 엑셀 양식이 입력되었습니다")
+            Result_Viewlabel_Scrollbar.insert(tk.END, "사이트명, 사이트주소, 사용아이디, 업로드여부, 파일명 순이어야 합니다")
 
-        Result_Viewlabel_Scrollbar.insert(tk.END, "검색이 완료되어 결과를 내보내는 중입니다")
-        Result_Viewlabel_Scrollbar.update()
-        end_time = datetime.now()
-        execution_time = end_time - start_time
-        result()
-        Result_Viewlabel_Scrollbar.insert(tk.END, f"검색 소요 시간: {execution_time}")
+
 
 
 
