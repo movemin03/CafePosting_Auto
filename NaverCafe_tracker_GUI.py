@@ -15,7 +15,7 @@ from selenium.webdriver.common.keys import Keys
 import time
 
 # 사용자 지정..
-ver = str("2023-12-30")
+ver = str("2023-12-31")
 auth_dic = {'id': 'pw'}
 chrome_ver = 120
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
@@ -25,15 +25,8 @@ login_status = 0
 options = webdriver.ChromeOptions()
 options.add_argument("headless")
 
-try:
-    driver = webdriver.Chrome(options=options)
-    #driver = webdriver.Chrome()
-except:
-    answer = messagebox.askyesno("크롬 실행 불가 오류", "인터넷이 연결되지 않았습니다. 인터넷 연결을 하셨나요?")
-    if answer:
-        print("재시도합니다")
-    else:
-        messagebox.showinfo(title="알림", message="프로그램이 작동하지 않습니다. 재실행해주세요")
+driver = webdriver.Chrome(options=options)
+#driver = webdriver.Chrome()
 
 root = tk.Tk()
 root.geometry("500x600")
@@ -57,6 +50,7 @@ def example_xlsx():
     ex_df.to_excel(file_path, index=False)
     messagebox.showinfo(title="알림", message=file_path + ".xlsx 에 양식이 저장되었습니다")
 
+
 button = ttk.Button(root, text="엑셀 입력 양식 생성", command=example_xlsx)
 button.pack()
 
@@ -74,6 +68,8 @@ progress = 0
 execute_num = 0
 
 data = {
+            'pl_member': [],
+            'pl_level': [],
             'pl_link': [],
             'pl_title': [],
             'pl_name': [],
@@ -81,8 +77,6 @@ data = {
             'pl_view': [],
             'pl_comments': []
         }
-
-
 
 
 def restart_driver():
@@ -110,7 +104,6 @@ def work(url, keyword):
         for cookie in session_cookies:
             driver.add_cookie(cookie)
         driver.refresh()
-        print("df")
         visible_driver.quit()
         login_status = 0
 
@@ -131,6 +124,14 @@ def work(url, keyword):
     progress = 20
     pb_type.set(progress)
     progress_bar.update()
+    try:
+        member = driver.find_element(By.XPATH, '//li[@class="mem-cnt-info"]/child::*[2]')
+        level = driver.find_element(By.XPATH, '//*[@id="cafe-info-data"]/div[1]/div[2]/ul/li[1]')
+        member_txt = member.text.replace("비공개", "").replace("공개", "")
+        level_txt = level.text.replace("비공개", "").replace("공개", "").replace("카페등급", "").replace("\n", "")
+    except NoSuchElementException:
+        Result_Viewlabel_Scrollbar.insert(tk.END, "멤버수와 카페등급 칸이 일반적 위치에 있지 않습니다")
+        member_txt, level_txt = "n/a", "n/a"
 
     try:
         driver.find_element(By.XPATH, '//div[@id="info-search"]/child::*[1]/child::*[1]').click()
@@ -165,8 +166,7 @@ def work(url, keyword):
 
     for i, row in enumerate(rows):
         try:
-            posting_link = row.find_element(By.XPATH,
-                                            "./child::*[1]/child::*[2]/child::*[1]/child::*[1]").get_attribute("href")
+            posting_link = row.find_element(By.XPATH, "./child::*[1]/child::*[2]/child::*[1]/child::*[1]").get_attribute("href")
             posting_title = row.find_element(By.XPATH, "./child::*[1]/child::*[2]/child::*[1]/child::*[1]").text
             Result_Viewlabel_Scrollbar.insert(tk.END, f'{i + 1}.게시물 "{posting_title}" 을 찾았습니다')
             Result_Viewlabel_Scrollbar.see(tk.END)
@@ -185,6 +185,9 @@ def work(url, keyword):
             posting_date = row.find_element(By.XPATH, "./child::*[3]").text
             posting_view = row.find_element(By.XPATH, "./child::*[4]").text
 
+            data['pl_member'].append(member_txt)
+            data['pl_level'].append(level_txt)
+            
             data['pl_link'].append(posting_link)
             data['pl_title'].append(posting_title)
             data['pl_comments'].append(posting_comments)
@@ -285,6 +288,7 @@ def login(user_id):
         global login_status
     login_status = 1
 
+
 def result():
     progress = 0
     pb_type.set(progress)
@@ -348,9 +352,6 @@ def execute():
         except UnboundLocalError:
             Result_Viewlabel_Scrollbar.insert(tk.END, "잘못된 엑셀 양식이 입력되었습니다")
             Result_Viewlabel_Scrollbar.insert(tk.END, "사이트명, 사이트주소, 사용아이디, 업로드여부, 파일명 순이어야 합니다")
-
-
-
 
 
 button = ttk.Button(root, text="검색", command=execute)
