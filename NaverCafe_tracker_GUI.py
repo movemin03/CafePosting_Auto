@@ -13,6 +13,7 @@ from tkinter import ttk, messagebox
 import pyperclip
 from selenium.webdriver.common.keys import Keys
 import time
+import re
 
 # 사용자 지정..
 ver = str("2023-12-31")
@@ -68,6 +69,8 @@ progress = 0
 execute_num = 0
 
 data = {
+            'pl_posting_key': [],
+            'pl_clubid': [],
             'pl_member': [],
             'pl_level': [],
             'pl_link': [],
@@ -167,6 +170,10 @@ def work(url, keyword):
     for i, row in enumerate(rows):
         try:
             posting_link = row.find_element(By.XPATH, "./child::*[1]/child::*[2]/child::*[1]/child::*[1]").get_attribute("href")
+            posting_cafe_clubid = re.search('clubid=(\d+)', posting_link).group(1)
+            posting_cafe_articleid = re.search('articleid=(\d+)', posting_link).group(1)
+            posting_key = str(posting_cafe_clubid) + str(posting_cafe_articleid)
+
             posting_title = row.find_element(By.XPATH, "./child::*[1]/child::*[2]/child::*[1]/child::*[1]").text
             Result_Viewlabel_Scrollbar.insert(tk.END, f'{i + 1}.게시물 "{posting_title}" 을 찾았습니다')
             Result_Viewlabel_Scrollbar.see(tk.END)
@@ -174,7 +181,7 @@ def work(url, keyword):
                 comments_pre = row.find_elements(By.XPATH, "./child::*[1]/child::*[2]/child::*[1]/*")[1:]
                 comments_pre2 = [child.text for child in comments_pre]
                 posting_comments = ' '.join(comments_pre2).replace("[", "").replace("]", "").replace(" ", "").replace(
-                    "사진", "").replace("파일", "").replace("링크", "").replace("new", "")
+                    "사진", "").replace("파일", "").replace("링크", "").replace("new", "").replace("투표", "")
                 if posting_comments == "":
                     posting_comments = "0"
             except Exception as e:
@@ -185,9 +192,11 @@ def work(url, keyword):
             posting_date = row.find_element(By.XPATH, "./child::*[3]").text
             posting_view = row.find_element(By.XPATH, "./child::*[4]").text
 
+            data['pl_posting_key'].append(posting_key)
+            data['pl_clubid'].append(posting_cafe_clubid)
             data['pl_member'].append(member_txt)
             data['pl_level'].append(level_txt)
-            
+
             data['pl_link'].append(posting_link)
             data['pl_title'].append(posting_title)
             data['pl_comments'].append(posting_comments)
@@ -358,3 +367,4 @@ button = ttk.Button(root, text="검색", command=execute)
 button.pack()
 
 root.mainloop()
+
