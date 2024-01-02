@@ -27,7 +27,6 @@ filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드�
 daum_id = ['exception'] # 잘 쓰지 않는 기능. 보통 다음 아이디를 여기에 넣어둠. 로그인 과정 건너뒴
 except_site = ["exception"] # 사진 별도로 올릴 항목은 여기에 추가. 사진을 전부 별도로 올리려면 naver 입력
 
-
 # 크롬드라이버 디버깅 모드 실행
 user = os.getlogin()
 subprocess.Popen(
@@ -51,7 +50,10 @@ today_month = str(now.tm_mon).zfill(2)
 today_day = str(now.tm_mday).zfill(2)
 matching_folders = []
 
-file_path = os.path.join(upper_path, today_month + "월")
+if os.path.exists(os.path.join(upper_path, today_month + "월")):
+    file_path = os.path.join(upper_path, today_month + "월")
+else:
+    file_path = os.path.join(upper_path, today_month[1] + "월")
 
 if os.path.exists(file_path):
     for folder_name in os.listdir(file_path):
@@ -78,6 +80,7 @@ if os.path.exists(file_path):
             else:
                 pass
 else:
+    os.path.exists(file_path)
     print("최상위 폴더 경로를 지정해주세요")
     upper_name = input().replace('"', '')
 
