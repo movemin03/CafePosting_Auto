@@ -16,7 +16,7 @@ import time
 import re
 
 # 사용자 지정..
-ver = str("2023-12-31")
+ver = str("2024-01-02")
 auth_dic = {'id': 'pw'}
 chrome_ver = 120
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
@@ -263,7 +263,8 @@ def login(user_id):
     try:
         password = auth_dic[user_id]
     except:
-        print("auth_dic을 가져오는 것에 오류가 있어서 패스워드를 수동입력해야 합니다:")
+        Result_Viewlabel_Scrollbar.insert(tk.END, "auth_dic 에 입력되어 있는 패스워드에 오류가 있습니다")
+        password = input()
     pyperclip.copy(password)
     visible_driver.find_element(By.ID, 'pw').click()
     action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
@@ -275,6 +276,13 @@ def login(user_id):
     login_btn.click()
     Result_Viewlabel_Scrollbar.insert(tk.END, "로그인 작업 완료")
     Result_Viewlabel_Scrollbar.see(tk.END)
+
+    try:
+        wait_s = WebDriverWait(visible_driver, 2)
+        wait_s.until(EC.presence_of_element_located((By.XPATH, '//*[@id="new.save"]')))
+        visible_driver.find_element(By.XPATH, '//*[@id="new.save"]').click()
+    except:
+        pass
     while True:
         try:
             wait_s = WebDriverWait(visible_driver, 60)
@@ -365,6 +373,9 @@ def execute():
 
 button = ttk.Button(root, text="검색", command=execute)
 button.pack()
+
+root.mainloop()
+
 
 root.mainloop()
 
