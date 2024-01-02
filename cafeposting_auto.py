@@ -316,6 +316,8 @@ def distributer_xls(upload_path):
     naver_df_re = df[df['사이트주소'].str.contains('cafe.naver.com')]
     naver_file_path = upper_name + "\\naver_cafe.xlsx"
     naver_df_re.rename(columns={'사용아이디': '업로드여부', '업로드여부': '사용아이디'}, inplace=True)
+    naver_df_re['사용아이디'] = naver_df_re['사용아이디'].str.replace("@naver.com", "").str.replace("@daum.net", "").str.replace(
+        " ", "").str.strip()
     if naver_df_re.empty:
         print("네이버 데이터가 없습니다")
     else:
@@ -326,6 +328,8 @@ def distributer_xls(upload_path):
     daum_df_re = df[df['사이트주소'].str.contains('cafe.daum.net')]
     daum_file_path = upper_name + "\\daum_cafe.xlsx"
     daum_df_re.rename(columns={'사용아이디': '업로드여부', '업로드여부': '사용아이디'}, inplace=True)
+    daum_df_re['사용아이디'] = daum_df_re['사용아이디'].str.replace("@naver.com", "").str.replace("@daum.net", "").str.replace(
+        " ", "").str.strip()
     if daum_df_re.empty:
         print("다음 데이터가 없습니다")
     else:
@@ -336,6 +340,8 @@ def distributer_xls(upload_path):
     other_df_re = df[~(df['사이트주소'].str.contains('cafe.naver.com') | df['사이트주소'].str.contains('cafe.daum.net'))]
     other_file_path = os.path.join(upper_name + "\\other_cafe.xlsx")
     other_df_re.rename(columns={'사용아이디': '업로드여부', '업로드여부': '사용아이디'}, inplace=True)
+    other_df_re['사용아이디'] = other_df_re['사용아이디'].str.replace("@naver.com", "").str.replace("@daum.net", "").str.replace(
+        " ", "").str.strip()
     if other_df_re.empty:
         print("기타 카페 데이터가 없습니다")
     else:
