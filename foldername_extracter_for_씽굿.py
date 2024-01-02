@@ -18,8 +18,8 @@ def separate_numbers_and_strings(folder_path):
 
                 for line in lines:
                     try:
-                        korean_pattern = r"[가-힣]+"
-                        non_korean_pattern = r"[^가-힣]+"
+                        korean_pattern = r"[가-힣a-zA-Z]+"
+                        non_korean_pattern = r"[^가-힣a-zA-Z]+"
 
                         korean_part = "".join(re.findall(korean_pattern, line))
                         non_korean_part = "".join(re.findall(non_korean_pattern, line))
