@@ -20,9 +20,9 @@ import re
 
 # 사용자가 환경에 따라 변경해야 할 값
 upper_path = "" # 예)홍길동, 안에 11월 등 월별 폴더 존재해야
-ver = str("2023-11-11")
+ver = str("2024-01-02")
 auth_dic = {'id':'pw'}
-chrome_ver = 119
+chrome_ver = 120
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
 daum_id = ['exception'] # 잘 쓰지 않는 기능. 보통 다음 아이디를 여기에 넣어둠. 로그인 과정 건너뒴
 except_site = ["exception"] # 사진 별도로 올릴 항목은 여기에 추가. 사진을 전부 별도로 올리려면 naver 입력
@@ -296,6 +296,49 @@ else:
 for filename in os.listdir(upper_name):
     if filename == "naver_cafe.xlsx":
         upload_path = os.path.join(upper_name, filename)
+def distributer_xls(upload_path):
+    print("엑셀 파일 전처리 작업을 진행합니다")
+    try:
+        df = pd.read_excel(upload_path, usecols=['사이트명', '사이트주소', '업로드여부', '사용아이디', '파일명'])
+    except ValueError:
+        df = pd.read_excel(upload_path, usecols=['사이트명', '사이트주소', '업로드여부', '사용아이디', '폴더명'])
+        df.rename(columns={'폴더명': '파일명'}, inplace=True)
+    pd.set_option('mode.chained_assignment', None)
+    if len(df.loc[1, '사용아이디']) > 3:
+        # 순서 변경된 데이터프레임 생성
+        df[['업로드여부', '사용아이디']] = df[['사용아이디', '업로드여부']]
+        print("포스팅 프로그램이 인식할 수 있도록 테이블 순서를 일부 변경합니다")
+
+    # "cafe.naver" 필터링 후 저장
+    naver_df_re = df[df['사이트주소'].str.contains('cafe.naver.com')]
+    naver_file_path = upper_name + "\\naver_cafe.xlsx"
+    naver_df_re.rename(columns={'사용아이디': '업로드여부', '업로드여부': '사용아이디'}, inplace=True)
+    if naver_df_re.empty:
+        print("네이버 데이터가 없습니다")
+    else:
+        naver_df_re.to_excel(naver_file_path, index=False)
+        print("네이버 완료: " + naver_file_path)
+
+    # "cafe.daum.net" 필터링 후 저장
+    daum_df_re = df[df['사이트주소'].str.contains('cafe.daum.net')]
+    daum_file_path = upper_name + "\\daum_cafe.xlsx"
+    daum_df_re.rename(columns={'사용아이디': '업로드여부', '업로드여부': '사용아이디'}, inplace=True)
+    if daum_df_re.empty:
+        print("다음 데이터가 없습니다")
+    else:
+        daum_df_re.to_excel(daum_file_path, index=False)
+        print("다음 완료: " + daum_file_path)
+
+    # 나머지 경우 필터링 후 저장
+    other_df_re = df[~(df['사이트주소'].str.contains('cafe.naver.com') | df['사이트주소'].str.contains('cafe.daum.net'))]
+    other_file_path = os.path.join(upper_name + "\\other_cafe.xlsx")
+    other_df_re.rename(columns={'사용아이디': '업로드여부', '업로드여부': '사용아이디'}, inplace=True)
+    if other_df_re.empty:
+        print("기타 카페 데이터가 없습니다")
+    else:
+        other_df_re.to_excel(other_file_path, index=False)
+        print("기타 완료: " + other_file_path)
+    print("완료되었습니다")
 
 try:
     print(f"\n참고 엑셀 파일 경로: {upload_path}")
@@ -304,12 +347,19 @@ try:
     if a == "n":
         print('참고할 엑셀 파일 위치를 알려주세요:')
         upload_path = input().replace('"', '')
-    else:
-        pass
+        distributer_xls(upload_path)
+        for filename in os.listdir(upper_name):
+            if filename == "naver_cafe.xlsx":
+                upload_path = os.path.join(upper_name, filename)
 except:
     print('참고할 엑셀 파일 위치를 알려주세요:')
     upload_path = input().replace('"', '')
     print(f"참고 엑셀 파일 경로: {upload_path}")
+    distributer_xls(upload_path)
+    for filename in os.listdir(upper_name):
+        if filename == "naver_cafe.xlsx":
+            upload_path = os.path.join(upper_name, filename)
+
 
 try:
     with open(post_title_path, encoding='utf-8') as file:
@@ -328,7 +378,7 @@ try:
     input_id_list = [item.strip() for item in input_id_list]
     input_id_list = [string.split("/")[0].strip() for string in input_id_list]
 except:
-    print("100 퍼센트의 확률로 제공하신 엑셀파일의 아이디 칸이 비어 있습니다. 프로그램을 재실행하시길 권장합니다")
+    print("제공하신 엑셀파일의 아이디 칸이 비어 있습니다. 프로그램을 재실행하시길 권장합니다")
 
 n_error_list = []
 wait = WebDriverWait(driver, 5)
