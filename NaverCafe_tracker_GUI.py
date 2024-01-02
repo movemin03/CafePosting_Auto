@@ -170,43 +170,49 @@ def work(url, keyword):
     for i, row in enumerate(rows):
         try:
             posting_link = row.find_element(By.XPATH, "./child::*[1]/child::*[2]/child::*[1]/child::*[1]").get_attribute("href")
-            posting_cafe_clubid = re.search('clubid=(\d+)', posting_link).group(1)
-            posting_cafe_articleid = re.search('articleid=(\d+)', posting_link).group(1)
+            posting_cafe_clubid = re.search('clubid=(\\d+)', posting_link).group(1)
+            posting_cafe_articleid = re.search('articleid=(\\d+)', posting_link).group(1)
             posting_key = str(posting_cafe_clubid) + str(posting_cafe_articleid)
 
             posting_title = row.find_element(By.XPATH, "./child::*[1]/child::*[2]/child::*[1]/child::*[1]").text
-            Result_Viewlabel_Scrollbar.insert(tk.END, f'{i + 1}.게시물 "{posting_title}" 을 찾았습니다')
+
+            if posting_title.replace(" ", "") == keyword.replace(" ", ""):
+                Result_Viewlabel_Scrollbar.insert(tk.END, f'{i + 1}.게시물 "{posting_title}" 을 찾았습니다')
+                Result_Viewlabel_Scrollbar.see(tk.END)
+                try:
+                    comments_pre = row.find_elements(By.XPATH, "./child::*[1]/child::*[2]/child::*[1]/*")[1:]
+                    comments_pre2 = [child.text for child in comments_pre]
+                    posting_comments = ' '.join(comments_pre2).replace("[", "").replace("]", "").replace(" ","").replace(
+                        "사진", "").replace("파일", "").replace("링크", "").replace("new", "").replace("투표", "")
+                    if posting_comments == "":
+                        posting_comments = "0"
+                except Exception as e:
+                    print('comment가 없음.', e)
+                    posting_comments = "n/a"
+
+                posting_name = row.find_element(By.XPATH, "./child::*[2]").text
+                posting_date = row.find_element(By.XPATH, "./child::*[3]").text
+                posting_view = row.find_element(By.XPATH, "./child::*[4]").text
+
+                data['pl_posting_key'].append(posting_key)
+                data['pl_clubid'].append(posting_cafe_clubid)
+                data['pl_member'].append(member_txt)
+                data['pl_level'].append(level_txt)
+
+                data['pl_link'].append(posting_link)
+                data['pl_title'].append(posting_title)
+                data['pl_comments'].append(posting_comments)
+                data['pl_name'].append(posting_name)
+                data['pl_date'].append(posting_date)
+                data['pl_view'].append(posting_view)
+
+            else:
+                Result_Viewlabel_Scrollbar.insert(tk.END, f'검색어와 달라 제외: "{posting_title}"')
             Result_Viewlabel_Scrollbar.see(tk.END)
-            try:
-                comments_pre = row.find_elements(By.XPATH, "./child::*[1]/child::*[2]/child::*[1]/*")[1:]
-                comments_pre2 = [child.text for child in comments_pre]
-                posting_comments = ' '.join(comments_pre2).replace("[", "").replace("]", "").replace(" ", "").replace(
-                    "사진", "").replace("파일", "").replace("링크", "").replace("new", "").replace("투표", "")
-                if posting_comments == "":
-                    posting_comments = "0"
-            except Exception as e:
-                print('comment가 없음.', e)
-                posting_comments = "n/a"
-
-            posting_name = row.find_element(By.XPATH, "./child::*[2]").text
-            posting_date = row.find_element(By.XPATH, "./child::*[3]").text
-            posting_view = row.find_element(By.XPATH, "./child::*[4]").text
-
-            data['pl_posting_key'].append(posting_key)
-            data['pl_clubid'].append(posting_cafe_clubid)
-            data['pl_member'].append(member_txt)
-            data['pl_level'].append(level_txt)
-
-            data['pl_link'].append(posting_link)
-            data['pl_title'].append(posting_title)
-            data['pl_comments'].append(posting_comments)
-            data['pl_name'].append(posting_name)
-            data['pl_date'].append(posting_date)
-            data['pl_view'].append(posting_view)
-
         except Exception as e:
             Result_Viewlabel_Scrollbar.insert(tk.END, f'{i + 1}번째 항목이 존재하지 않습니다:{url}')
             print(e)
+
 
     Result_Viewlabel_Scrollbar.insert(tk.END, url + " :검색이 완료되었습니다")
     Result_Viewlabel_Scrollbar.see(tk.END)
@@ -278,7 +284,7 @@ def login(user_id):
     Result_Viewlabel_Scrollbar.see(tk.END)
 
     try:
-        wait_s = WebDriverWait(visible_driver, 2)
+        wait_s = WebDriverWait(visible_driver, 1)
         wait_s.until(EC.presence_of_element_located((By.XPATH, '//*[@id="new.save"]')))
         visible_driver.find_element(By.XPATH, '//*[@id="new.save"]').click()
     except:
@@ -349,6 +355,8 @@ def execute():
             Result_Viewlabel_Scrollbar.update()
         except FileNotFoundError:
             Result_Viewlabel_Scrollbar.insert(tk.END, "잘못된 엑셀 경로가 입력되었습니다")
+        except KeyError:
+            Result_Viewlabel_Scrollbar.insert(tk.END, "잘못된 엑셀 데이터가 입력되었습니다")
         try:
             for user_id, df in individual_dfs.items():
                 print(f"사용자 아이디: {user_id}")
@@ -378,4 +386,3 @@ root.mainloop()
 
 
 root.mainloop()
-
