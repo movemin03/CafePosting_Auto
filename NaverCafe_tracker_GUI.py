@@ -259,23 +259,26 @@ def login(user_id):
     Result_Viewlabel_Scrollbar.insert(tk.END, "로그인 창에 접속중입니다")
     Result_Viewlabel_Scrollbar.update()
 
-    pyperclip.copy(user_id)
-    visible_driver.find_element(By.ID, 'id').click()
     action = ActionChains(visible_driver)
+
+    visible_driver.find_element(By.ID, 'id').click()
     action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
     action.send_keys(Keys.BACKSPACE).perform()
+    pyperclip.copy(user_id)
     visible_driver.find_element(By.ID, 'id').send_keys(Keys.CONTROL + 'v')
 
     try:
-        password = auth_dic[user_id]
+        password = auth_dic[user_id].replace("\n", "").replace("", "")
     except:
         Result_Viewlabel_Scrollbar.insert(tk.END, "auth_dic 에 입력되어 있는 패스워드에 오류가 있습니다")
         password = input()
-    pyperclip.copy(password)
+
     visible_driver.find_element(By.ID, 'pw').click()
     action.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).perform()
     action.send_keys(Keys.BACKSPACE).perform()
+    pyperclip.copy(password)
     visible_driver.find_element(By.ID, 'pw').send_keys(Keys.CONTROL + 'v')
+
 
     time.sleep(1)
     login_btn = visible_driver.find_element(By.ID, 'log.login')
@@ -285,7 +288,7 @@ def login(user_id):
 
     try:
         if "https://nid.naver.com/login/ext/deviceConfirm" in visible_driver.current_url:
-            print("자주 사용하는 기기 등록됨")
+            print("자주사용하는 기기 등록")
             wait_s = WebDriverWait(visible_driver, 1)
             wait_s.until(EC.presence_of_element_located((By.XPATH, '//*[@id="new.save"]')))
             visible_driver.find_element(By.XPATH, '//*[@id="new.save"]').click()
@@ -297,10 +300,13 @@ def login(user_id):
             wait_s.until(EC.presence_of_element_located((By.XPATH, '//*[@id="account"]/div[1]/div/div/div[2]')))
             id_chk = visible_driver.find_element(By.XPATH, '//*[@id="account"]/div[1]/div/div/div[2]').text.replace(
                 "@naver.com", "")
+            global manual_not_login
+            manual_not_login = 0
             if user_id != id_chk:
                 print(user_id + ":" + id_chk)
                 Result_Viewlabel_Scrollbar.insert(tk.END, "2차 인증 여부 및 아이디가 " + user_id + "가 맞는지 확인해주시길")
                 Result_Viewlabel_Scrollbar.see(tk.END)
+                manual_not_login = 1
             break
         except Exception as e:
             print(e)
@@ -309,9 +315,11 @@ def login(user_id):
                 print("재시도합니다")
             else:
                 print("로그인을 하지 않습니다")
+                manual_not_login = 1
                 break
         global login_status
     login_status = 1
+    return manual_not_login
 
 
 def result():
@@ -367,7 +375,8 @@ def execute():
                 login(user_id)
                 for url in list_individual:
                     try:
-                        work(url, keyword)
+                        if manual_not_login == 0:
+                            work(url, keyword)
                     except NoSuchWindowException:
                         restart_driver()
             Result_Viewlabel_Scrollbar.insert(tk.END, "검색이 완료되어 결과를 내보내는 중입니다")
