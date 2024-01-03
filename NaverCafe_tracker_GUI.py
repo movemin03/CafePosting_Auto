@@ -284,9 +284,11 @@ def login(user_id):
     Result_Viewlabel_Scrollbar.see(tk.END)
 
     try:
-        wait_s = WebDriverWait(visible_driver, 1)
-        wait_s.until(EC.presence_of_element_located((By.XPATH, '//*[@id="new.save"]')))
-        visible_driver.find_element(By.XPATH, '//*[@id="new.save"]').click()
+        if "https://nid.naver.com/login/ext/deviceConfirm" in visible_driver.current_url:
+            print("자주 사용하는 기기 등록됨")
+            wait_s = WebDriverWait(visible_driver, 1)
+            wait_s.until(EC.presence_of_element_located((By.XPATH, '//*[@id="new.save"]')))
+            visible_driver.find_element(By.XPATH, '//*[@id="new.save"]').click()
     except:
         pass
     while True:
