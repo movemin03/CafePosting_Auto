@@ -16,7 +16,7 @@ import time
 import re
 
 # 사용자 지정..
-ver = str("2024-01-05")
+ver = str("2024-01-06")
 auth_dic = {'id': 'pw'}
 chrome_ver = 120
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
@@ -43,6 +43,29 @@ excel_label.pack()
 excel_entry = ttk.Entry(root, width=67)
 excel_entry.pack()
 
+options_label = ttk.Label(root, text="검색 필터 강도 선택")
+options_label.pack()
+filter_options = {
+    "정확": 98,
+    "표준": 90,
+    "느슨함": 70,
+    "해제": 0
+}
+
+selected_option = tk.StringVar(root)
+selected_option.set("표준")
+
+filter_value = filter_options[selected_option.get()]
+def update_filter_value(*args):
+    selected_menu = selected_option.get()
+    global filter_value
+    filter_value = filter_options[selected_menu]
+    return filter_value
+
+selected_option.trace("w", update_filter_value)
+option_menu = tk.OptionMenu(root, selected_option, *filter_options.keys())
+option_menu.pack()
+
 def example_xlsx():
     ex_df = pd.DataFrame(columns=filter_list)
     user = os.getlogin()
@@ -51,14 +74,16 @@ def example_xlsx():
     ex_df.to_excel(file_path, index=False)
     messagebox.showinfo(title="알림", message=file_path + ".xlsx 에 양식이 저장되었습니다")
 
-
+keyword_label = ttk.Label(root, text="기타옵션")
+keyword_label.pack()
 button = ttk.Button(root, text="엑셀 입력 양식 생성", command=example_xlsx)
 button.pack()
 
 Result_Viewlabel = ttk.LabelFrame(text="실행내용")
 Result_Viewlabel.pack()
 
-Result_Viewlabel_Scrollbar = tk.Listbox(Result_Viewlabel, selectmode="extended", width=100, height=25, font=('Normal', 10), yscrollcommand=tk.Scrollbar(Result_Viewlabel).set)
+Result_Viewlabel_Scrollbar = tk.Listbox(Result_Viewlabel,
+                                        selectmode="extended", width=100, height=25, font=('Normal', 10), yscrollcommand=tk.Scrollbar(Result_Viewlabel).set)
 Result_Viewlabel_Scrollbar.pack(side=tk.LEFT, fill=tk.BOTH)
 
 pb_type = tk.DoubleVar()
@@ -86,12 +111,21 @@ def restart_driver():
     options = webdriver.ChromeOptions()
     options.add_argument("headless")
     # 크롬창 headless 모드를 해제하려면 아래 줄 주석 해제
-    # driver = webdriver.Chrome()
     global driver
     # driver = webdriver.Chrome()
     driver = webdriver.Chrome(options=options)
     # 로딩이 완료될 때까지 최대 10초간 대기
 
+def calculate_similarity(main_txt, sub_txt):
+    str_to_vec = lambda s: [ord(c) for c in s]
+
+    main_vec = str_to_vec(main_txt)
+    sub_vec = str_to_vec(sub_txt)
+
+    dot_product = sum(a * b for a, b in zip(main_vec, sub_vec))
+    magnitude = (sum(a * a for a in main_vec) * sum(b * b for b in sub_vec)) ** 0.5
+
+    return dot_product / magnitude
 
 def work(url, keyword):
     if url.count("/") > 3:
@@ -164,23 +198,35 @@ def work(url, keyword):
     pb_type.set(progress)
     progress_bar.update()
 
+    selected_option.trace("w", update_filter_value)
     rows_xpath = "//*[@id='main-area']/div[5]/table/tbody/tr"  # 모든 행을 한번에 선택
     rows = driver.find_elements(By.XPATH, rows_xpath)
 
+    print("옵션 값" + str(filter_value))
+
     for i, row in enumerate(rows):
         try:
-            posting_link = row.find_element(By.XPATH, "./child::*[1]/child::*[2]/child::*[1]/child::*[1]").get_attribute("href")
+            try:
+                posting_link_track = "./child::*[1]/child::*[2]"
+                posting_link = row.find_element(By.XPATH,posting_link_track + "/child::*[1]/child::*[1]").get_attribute("href")
+                print("method1")
+            except:
+                posting_link_track = "./child::*[1]/child::*[3]"
+                posting_link = row.find_element(By.XPATH,posting_link_track + "/child::*[1]/child::*[1]").get_attribute("href")
+                print("method2")
             posting_cafe_clubid = re.search('clubid=(\\d+)', posting_link).group(1)
             posting_cafe_articleid = re.search('articleid=(\\d+)', posting_link).group(1)
             posting_key = str(posting_cafe_clubid) + str(posting_cafe_articleid)
 
-            posting_title = row.find_element(By.XPATH, "./child::*[1]/child::*[2]/child::*[1]/child::*[1]").text
+            posting_title = row.find_element(By.XPATH, posting_link_track + "/child::*[1]/child::*[1]").text
 
-            if posting_title.replace(" ", "") == keyword.replace(" ", ""):
+            similarity = calculate_similarity(posting_title.replace(" ", ""), keyword.replace(" ", ""))
+
+            if similarity * 100 > filter_value:
                 Result_Viewlabel_Scrollbar.insert(tk.END, f'{i + 1}.게시물 "{posting_title}" 을 찾았습니다')
                 Result_Viewlabel_Scrollbar.see(tk.END)
                 try:
-                    comments_pre = row.find_elements(By.XPATH, "./child::*[1]/child::*[2]/child::*[1]/*")[1:]
+                    comments_pre = row.find_elements(By.XPATH, posting_link_track + "/child::*[1]/*")[1:]
                     comments_pre2 = [child.text for child in comments_pre]
                     posting_comments = ' '.join(comments_pre2).replace("[", "").replace("]", "").replace(" ","").replace(
                         "사진", "").replace("파일", "").replace("링크", "").replace("new", "").replace("투표", "")
@@ -191,8 +237,14 @@ def work(url, keyword):
                     posting_comments = "n/a"
 
                 posting_name = row.find_element(By.XPATH, "./child::*[2]").text
+                print("posting_name")
+                print(posting_name)
                 posting_date = row.find_element(By.XPATH, "./child::*[3]").text
+                print("posting_date")
+                print(posting_date)
                 posting_view = row.find_element(By.XPATH, "./child::*[4]").text
+                print("posting_view")
+                print(posting_view)
 
                 data['pl_posting_key'].append(posting_key)
                 data['pl_clubid'].append(posting_cafe_clubid)
@@ -407,11 +459,5 @@ def execute():
 
 button = ttk.Button(root, text="검색", command=execute)
 button.pack()
-
-root.mainloop()
-
-
-root.mainloop()
-
 
 root.mainloop()
