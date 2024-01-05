@@ -16,7 +16,7 @@ import time
 import re
 
 # 사용자 지정..
-ver = str("2024-01-02")
+ver = str("2024-01-05")
 auth_dic = {'id': 'pw'}
 chrome_ver = 120
 filter_list = ['사이트명', '사이트주소', '사용아이디', '업로드여부', '파일명']
@@ -312,9 +312,11 @@ def login(user_id):
             print(e)
             answer = messagebox.askyesno("60초 타임아웃", "2차 인증이 완료되지 않았습니다. 재시도할까요?")
             if answer:
-                print("재시도합니다")
+                Result_Viewlabel_Scrollbar.insert(tk.END, "인증을 재시도합니다")
+                Result_Viewlabel_Scrollbar.see(tk.END)
             else:
-                print("로그인을 하지 않습니다")
+                Result_Viewlabel_Scrollbar.insert(tk.END, "로그인하지 않습니다")
+                Result_Viewlabel_Scrollbar.see(tk.END)
                 manual_not_login = 1
                 break
         global login_status
@@ -329,6 +331,19 @@ def result():
 
     # 데이터프레임 생성
     df = pd.DataFrame(data)
+
+    #df = df.rename(columns={
+        #'pl_posting_key': '기본키',
+        #'pl_clubid': '카페고유번호',
+        #'pl_member': '카페멤버수',
+        #'pl_level': '카페단계',
+        #'pl_link': '카페링크',
+        #'pl_title': '게시글제목',
+        #'pl_name': '게시자',
+        #'pl_date': '게시날짜',
+        #'pl_view': '게시글뷰수',
+        #'pl_comments': '게시글댓글수'
+    #})
 
     file_time = datetime.today().strftime("%Y%m%d_%H%M")
     user = os.getlogin()
@@ -392,6 +407,9 @@ def execute():
 
 button = ttk.Button(root, text="검색", command=execute)
 button.pack()
+
+root.mainloop()
+
 
 root.mainloop()
 
