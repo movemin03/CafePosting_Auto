@@ -211,9 +211,15 @@ def work(url, keyword):
                 posting_link = row.find_element(By.XPATH,posting_link_track + "/child::*[1]/child::*[1]").get_attribute("href")
                 print("method1")
             except:
-                posting_link_track = "./child::*[1]/child::*[3]"
-                posting_link = row.find_element(By.XPATH,posting_link_track + "/child::*[1]/child::*[1]").get_attribute("href")
-                print("method2")
+                try:
+                    posting_link_track = "./child::*[1]/child::*[3]"
+                    posting_link = row.find_element(By.XPATH,posting_link_track + "/child::*[1]/child::*[1]").get_attribute("href")
+                    print("method2")
+                except:
+                    if i == 0:
+                        Result_Viewlabel_Scrollbar.insert(tk.END, url + "method3 가 필요한 카페입니다")
+                    else:
+                        Result_Viewlabel_Scrollbar.insert(tk.END, url + " 1번째 항목도 아닌데 왜 오류가 발생... method3 가 필요한 카페입니다")
             posting_cafe_clubid = re.search('clubid=(\\d+)', posting_link).group(1)
             posting_cafe_articleid = re.search('articleid=(\\d+)', posting_link).group(1)
             posting_key = str(posting_cafe_clubid) + str(posting_cafe_articleid)
@@ -237,14 +243,8 @@ def work(url, keyword):
                     posting_comments = "n/a"
 
                 posting_name = row.find_element(By.XPATH, "./child::*[2]").text
-                print("posting_name")
-                print(posting_name)
                 posting_date = row.find_element(By.XPATH, "./child::*[3]").text
-                print("posting_date")
-                print(posting_date)
                 posting_view = row.find_element(By.XPATH, "./child::*[4]").text
-                print("posting_view")
-                print(posting_view)
 
                 data['pl_posting_key'].append(posting_key)
                 data['pl_clubid'].append(posting_cafe_clubid)
@@ -305,7 +305,6 @@ def login(user_id):
     visible_driver = webdriver.Chrome(options=visible_options)
     global tabs
     tabs = visible_driver.window_handles
-    print(str(tabs))
     login_url = "https://nid.naver.com/nidlogin.login"
     visible_driver.get(login_url)
     Result_Viewlabel_Scrollbar.insert(tk.END, "로그인 창에 접속중입니다")
@@ -340,7 +339,6 @@ def login(user_id):
 
     try:
         if "https://nid.naver.com/login/ext/deviceConfirm" in visible_driver.current_url:
-            print("자주사용하는 기기 등록")
             wait_s = WebDriverWait(visible_driver, 1)
             wait_s.until(EC.presence_of_element_located((By.XPATH, '//*[@id="new.save"]')))
             visible_driver.find_element(By.XPATH, '//*[@id="new.save"]').click()
@@ -425,7 +423,6 @@ def execute():
         start_time = datetime.now()
         Result_Viewlabel_Scrollbar.update()
 
-        print(excel_input)
         try:
             individual_dfs = get_site_address_list(excel_input)
             Result_Viewlabel_Scrollbar.insert(tk.END, "검색을 위한 크롬드라이버를 로딩하고 있는 중입니다")
