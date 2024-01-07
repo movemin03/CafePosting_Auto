@@ -56,15 +56,19 @@ selected_option = tk.StringVar(root)
 selected_option.set("표준")
 
 filter_value = filter_options[selected_option.get()]
-def update_filter_value(*args):
+
+
+def update_filter_value():
     selected_menu = selected_option.get()
     global filter_value
     filter_value = filter_options[selected_menu]
     return filter_value
 
+
 selected_option.trace("w", update_filter_value)
 option_menu = tk.OptionMenu(root, selected_option, *filter_options.keys())
 option_menu.pack()
+
 
 def example_xlsx():
     ex_df = pd.DataFrame(columns=filter_list)
@@ -73,6 +77,7 @@ def example_xlsx():
     file_path = "C:\\Users\\" + user + "\\Desktop\\입력양식_네이버카페_tracker_" + str(ex_df_time) + '.xlsx'
     ex_df.to_excel(file_path, index=False)
     messagebox.showinfo(title="알림", message=file_path + ".xlsx 에 양식이 저장되었습니다")
+
 
 keyword_label = ttk.Label(root, text="기타옵션")
 keyword_label.pack()
@@ -94,16 +99,19 @@ progress = 0
 execute_num = 0
 
 data = {
-            'pl_posting_key': [],
-            'pl_clubid': [],
-            'pl_member': [],
-            'pl_level': [],
-            'pl_link': [],
-            'pl_title': [],
-            'pl_name': [],
-            'pl_date': [],
-            'pl_view': [],
-            'pl_comments': []
+            'post_key': [],
+            'post_clubid': [],
+            'post_member': [],
+            'post_level': [],
+            'orgin_link': [],
+            'post_link': [],
+            'post_title': [],
+            'post_name': [],
+            'orgin_id': [],
+            'post_date': [],
+            'post_view': [],
+            'post_comments': [],
+            'orgin_file_name': []
         }
 
 
@@ -116,6 +124,7 @@ def restart_driver():
     driver = webdriver.Chrome(options=options)
     # 로딩이 완료될 때까지 최대 10초간 대기
 
+
 def calculate_similarity(main_txt, sub_txt):
     str_to_vec = lambda s: [ord(c) for c in s]
 
@@ -127,7 +136,8 @@ def calculate_similarity(main_txt, sub_txt):
 
     return dot_product / magnitude
 
-def work(url, keyword):
+
+def work(url, keyword, user_id, or_file_name_item):
     if url.count("/") > 3:
         split_text = url.split("/")
         split_text = split_text[:4]  # 처음 4개의 요소만 유지
@@ -209,12 +219,12 @@ def work(url, keyword):
             try:
                 posting_link_track = "./child::*[1]/child::*[2]"
                 posting_link = row.find_element(By.XPATH,posting_link_track + "/child::*[1]/child::*[1]").get_attribute("href")
-                print("method1")
+                #print("method1")
             except:
                 try:
                     posting_link_track = "./child::*[1]/child::*[3]"
-                    posting_link = row.find_element(By.XPATH,posting_link_track + "/child::*[1]/child::*[1]").get_attribute("href")
-                    print("method2")
+                    posting_link = row.find_element(By.XPATH, posting_link_track + "/child::*[1]/child::*[1]").get_attribute("href")
+                    #print("method2")
                 except:
                     if i == 0:
                         Result_Viewlabel_Scrollbar.insert(tk.END, url + "method3 가 필요한 카페입니다")
@@ -234,7 +244,7 @@ def work(url, keyword):
                 try:
                     comments_pre = row.find_elements(By.XPATH, posting_link_track + "/child::*[1]/*")[1:]
                     comments_pre2 = [child.text for child in comments_pre]
-                    posting_comments = ' '.join(comments_pre2).replace("[", "").replace("]", "").replace(" ","").replace(
+                    posting_comments = ' '.join(comments_pre2).replace("[", "").replace("]", "").replace(" ", "").replace(
                         "사진", "").replace("파일", "").replace("링크", "").replace("new", "").replace("투표", "")
                     if posting_comments == "":
                         posting_comments = "0"
@@ -246,17 +256,20 @@ def work(url, keyword):
                 posting_date = row.find_element(By.XPATH, "./child::*[3]").text
                 posting_view = row.find_element(By.XPATH, "./child::*[4]").text
 
-                data['pl_posting_key'].append(posting_key)
-                data['pl_clubid'].append(posting_cafe_clubid)
-                data['pl_member'].append(member_txt)
-                data['pl_level'].append(level_txt)
+                data['post_key'].append(posting_key)
+                data['post_clubid'].append(posting_cafe_clubid)
+                data['post_member'].append(member_txt)
+                data['post_level'].append(level_txt)
 
-                data['pl_link'].append(posting_link)
-                data['pl_title'].append(posting_title)
-                data['pl_comments'].append(posting_comments)
-                data['pl_name'].append(posting_name)
-                data['pl_date'].append(posting_date)
-                data['pl_view'].append(posting_view)
+                data['orgin_link'].append(url)
+                data['post_link'].append(posting_link)
+                data['post_title'].append(posting_title)
+                data['post_name'].append(posting_name)
+                data['post_date'].append(posting_date)
+                data['post_view'].append(posting_view)
+                data['post_comments'].append(posting_comments)
+                data['orgin_id'].append(user_id)
+                data['orgin_file_name'].append(or_file_name_item)
 
             else:
                 Result_Viewlabel_Scrollbar.insert(tk.END, f'검색어와 달라 제외: "{posting_title}"')
@@ -381,29 +394,26 @@ def result():
 
     # 데이터프레임 생성
     df = pd.DataFrame(data)
+    duplicated_data = df[df.duplicated(subset='post_link', keep=False)]
+    df = df.drop_duplicates(subset='post_link')
 
-    #df = df.rename(columns={
-        #'pl_posting_key': '기본키',
-        #'pl_clubid': '카페고유번호',
-        #'pl_member': '카페멤버수',
-        #'pl_level': '카페단계',
-        #'pl_link': '카페링크',
-        #'pl_title': '게시글제목',
-        #'pl_name': '게시자',
-        #'pl_date': '게시날짜',
-        #'pl_view': '게시글뷰수',
-        #'pl_comments': '게시글댓글수'
-    #})
 
     file_time = datetime.today().strftime("%Y%m%d_%H%M")
     user = os.getlogin()
     file_path = 'C:\\Users\\' + user + '\\Desktop\\cafe_data_' + keyword + "_" + file_time
+    file_path_dupicated = 'C:\\Users\\' + user + '\\Desktop\\cafe_data_중복된데이터_' + keyword + "_" + file_time
 
     # 엑셀 파일로 저장
     with pd.ExcelWriter(file_path + ".xlsx") as writer:
         df.to_excel(writer, index=False, sheet_name='Sheet1')
+        Result_Viewlabel_Scrollbar.insert(tk.END, "\n검색된 데이터가" + file_path + ".xlsx 에 저장 완료되었습니다")
 
-    Result_Viewlabel_Scrollbar.insert(tk.END, "\n" + file_path + ".xlsx 에 저장 완료되었습니다")
+    if not duplicated_data.empty:
+        with pd.ExcelWriter(file_path_dupicated + ".xlsx") as writer:
+            duplicated_data.to_excel(writer, index=False, sheet_name='Sheet1')
+        Result_Viewlabel_Scrollbar.insert(tk.END, "\n중복 데이터가" + file_path_dupicated + ".xlsx 에 저장 완료되었습니다")
+        Result_Viewlabel_Scrollbar.insert(tk.END, "중복 데이터는 사용자가 제공한 엑셀 파일에 다른 아이디로 동일한 카페에 접속하도록 적어둔 경우 발생")
+
     Result_Viewlabel_Scrollbar.see(tk.END)
 
     pb_type.set(100)
@@ -431,6 +441,8 @@ def execute():
             Result_Viewlabel_Scrollbar.insert(tk.END, "잘못된 엑셀 경로가 입력되었습니다")
         except KeyError:
             Result_Viewlabel_Scrollbar.insert(tk.END, "잘못된 엑셀 데이터가 입력되었습니다")
+        except ValueError:
+            Result_Viewlabel_Scrollbar.insert(tk.END, "잘못된 엑셀 데이터가 입력되었습니다: 엑셀 파일이 아닙니다")
         try:
             for user_id, df in individual_dfs.items():
                 print(f"사용자 아이디: {user_id}")
@@ -440,7 +452,15 @@ def execute():
                 for url in list_individual:
                     try:
                         if manual_not_login == 0:
-                            work(url, keyword)
+                            try:
+                                matching_record = df[df['사이트주소'] == url].iloc[0]
+                                or_file_name_item = matching_record['파일명']
+                                if len(or_file_name_item) == 0:
+                                    or_file_name_item = "n/a"
+                            except Exception as e:
+                                print("파일명(커뮤니티명) 가져오기 오류:")
+                                print(e)
+                            work(url, keyword, user_id, or_file_name_item)
                     except NoSuchWindowException:
                         restart_driver()
             Result_Viewlabel_Scrollbar.insert(tk.END, "검색이 완료되어 결과를 내보내는 중입니다")
@@ -449,9 +469,19 @@ def execute():
             execution_time = end_time - start_time
             result()
             Result_Viewlabel_Scrollbar.insert(tk.END, f"검색 소요 시간: {execution_time}")
-        except UnboundLocalError:
+        except UnboundLocalError as e:
+            print(e)
             Result_Viewlabel_Scrollbar.insert(tk.END, "잘못된 엑셀 양식이 입력되었습니다")
             Result_Viewlabel_Scrollbar.insert(tk.END, "사이트명, 사이트주소, 사용아이디, 업로드여부, 파일명 순이어야 합니다")
+        except ValueError as e:
+            print("원치 않은 오류:")
+            print(e)
+            list_lengths = {key: len(value) for key, value in data.items()}
+            max_length = max(list_lengths.values())
+            different_lengths = {key: value for key, value in list_lengths.items() if value != max_length}
+            print("항목 개수가 다른 리스트들:")
+            for key, value in different_lengths.items():
+                print(f"{key}: {value} 개")
 
 
 button = ttk.Button(root, text="검색", command=execute)
