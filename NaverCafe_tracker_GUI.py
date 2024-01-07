@@ -58,7 +58,7 @@ selected_option.set("표준")
 filter_value = filter_options[selected_option.get()]
 
 
-def update_filter_value():
+def update_filter_value(*args):
     selected_menu = selected_option.get()
     global filter_value
     filter_value = filter_options[selected_menu]
