@@ -256,6 +256,9 @@ def work(url, keyword, user_id, or_file_name_item):
                 posting_date = row.find_element(By.XPATH, "./child::*[3]").text
                 posting_view = row.find_element(By.XPATH, "./child::*[4]").text
 
+                user_id = re.sub(r'\d', '', user_id)
+                user_id = user_id.replace(" ", "")
+
                 data['post_key'].append(posting_key)
                 data['post_clubid'].append(posting_cafe_clubid)
                 data['post_member'].append(member_txt)
